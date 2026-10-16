@@ -9,6 +9,12 @@ const connectDB = async () => {
   // Sanitize URI for safe logging
   const safeUri = uri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
 
+  if (!uri.startsWith('mongodb://') && !uri.startsWith('mongodb+srv://')) {
+    const errorMsg = `Invalid MONGODB_URI format: "${uri.length > 50 ? uri.slice(0, 50) + '...' : uri}". A valid MongoDB connection string must start with "mongodb+srv://" or "mongodb://". Please enter your real MongoDB Atlas connection string in your hosting environment variables.`;
+    console.error(`[MongoDB] CONFIGURATION ERROR: ${errorMsg}`);
+    throw new Error(errorMsg);
+  }
+
   try {
     const conn = await mongoose.connect(uri, {
       serverSelectionTimeoutMS: isProduction ? 10000 : 3000,
