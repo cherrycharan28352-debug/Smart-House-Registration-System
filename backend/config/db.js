@@ -41,13 +41,22 @@ const connectDB = async () => {
 
   // Embedded database fallback ensures the server is always online and fully functional
   try {
+    console.log('[MongoDB] Starting embedded MongoDB memory server...');
     const { MongoMemoryServer } = require('mongodb-memory-server');
-    mongod = await MongoMemoryServer.create();
+    mongod = await MongoMemoryServer.create({
+      instance: {
+        dbName: 'smart_house_db'
+      }
+    });
     const memoryUri = mongod.getUri();
     const conn = await mongoose.connect(memoryUri);
     console.log(`[MongoDB] Embedded database active: ${memoryUri}`);
+    global.dbConnected = true;
+    global.lastDbError = null;
     return conn;
   } catch (memErr) {
+    global.dbConnected = false;
+    global.lastDbError = memErr.message;
     console.warn('[MongoDB] Embedded database startup warning:', memErr.message);
     return null;
   }

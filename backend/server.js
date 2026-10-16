@@ -95,8 +95,15 @@ app.get('/', (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  const isDbReady = mongoose.connection.readyState === 1;
   res.status(200).json({
-    status: 'healthy',
+    status: isDbReady ? 'healthy' : 'initializing',
+    database: {
+      connected: isDbReady,
+      readyState: mongoose.connection.readyState,
+      host: mongoose.connection.host || null,
+      error: global.lastDbError || null
+    },
     system: 'Smart House Registration and Family Management API',
     timestamp: new Date().toISOString()
   });
