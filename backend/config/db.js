@@ -47,6 +47,9 @@ const connectDB = async () => {
     console.log('[MongoDB] Starting embedded MongoDB memory server...');
     const { MongoMemoryServer } = require('mongodb-memory-server');
     mongod = await MongoMemoryServer.create({
+      binary: {
+        version: '7.0.14'
+      },
       instance: {
         dbName: 'smart_house_db'
       }
