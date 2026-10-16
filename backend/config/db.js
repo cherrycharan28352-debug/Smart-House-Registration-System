@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+// Allow operations to buffer comfortably while database initializes
+mongoose.set('bufferTimeoutMS', 60000);
+
 let mongod = null;
 
 const connectDB = async () => {

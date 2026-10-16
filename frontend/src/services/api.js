@@ -1,7 +1,18 @@
 import axios from 'axios';
 
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname === '0.0.0.0');
+
+// In local dev, use local proxy /api; in production, automatically connect to the live Render backend API
+const defaultBaseURL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (isLocalhost ? '/api' : 'https://mane-manege-police-api.onrender.com/api');
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: defaultBaseURL,
   headers: {
     'Content-Type': 'application/json'
   }

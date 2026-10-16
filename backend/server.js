@@ -9,6 +9,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const { connectDB } = require('./config/db');
+const mongoose = require('mongoose');
 const { seedInitialData } = require('./utils/seedData');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
