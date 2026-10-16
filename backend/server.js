@@ -83,6 +83,16 @@ if (process.env.NODE_ENV !== 'test') {
 // Apply rate limiter to general API routes
 app.use('/api', apiLimiter);
 
+// Root health check endpoint for cloud load balancers
+app.get('/', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    service: 'Mane Manege Police Backend API',
+    kannadaTitle: 'ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({
@@ -122,25 +132,27 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-// Initialize Database & Server
-const startServer = async () => {
+// Bind to port immediately so cloud providers (Render, Railway, etc.) detect the service as LIVE instantly
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`=======================================================`);
+  console.log(`Smart House Registration Backend API is running!`);
+  console.log(`PORT: ${PORT} (Bound to 0.0.0.0 for cloud health checks)`);
+  console.log(`Health Check: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`=======================================================`);
+});
+
+// Initialize Database & seed data in background without blocking port binding
+(async () => {
   try {
-    await connectDB();
-    await seedInitialData();
-
-    app.listen(PORT, () => {
-      console.log(`=======================================================`);
-      console.log(`Smart House Registration Backend API is running!`);
-      console.log(`URL: http://localhost:${PORT}`);
-      console.log(`Health Check: http://localhost:${PORT}/api/health`);
-      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`=======================================================`);
-    });
+    const conn = await connectDB();
+    if (conn) {
+      await seedInitialData();
+      console.log('[Startup] Background initialization and database seeding completed successfully.');
+    }
   } catch (err) {
-    console.error('Failed to start server:', err.message);
+    console.error('[Startup] Database initialization warning:', err.message);
   }
-};
-
-startServer();
+})();
 
 module.exports = app;

@@ -48,8 +48,8 @@ const connectDB = async () => {
     console.log(`[MongoDB] Embedded database active: ${memoryUri}`);
     return conn;
   } catch (memErr) {
-    console.error('[MongoDB] Embedded database startup error:', memErr.message);
-    throw memErr;
+    console.warn('[MongoDB] Embedded database startup warning:', memErr.message);
+    return null;
   }
 };
 
