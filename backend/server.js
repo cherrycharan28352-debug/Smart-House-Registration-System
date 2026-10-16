@@ -1,0 +1,146 @@
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
+
+const { connectDB } = require('./config/db');
+const { seedInitialData } = require('./utils/seedData');
+const errorHandler = require('./middleware/errorHandler');
+const { apiLimiter } = require('./middleware/rateLimiter');
+
+// Import routes
+const authRoutes = require('./routes/authRoutes');
+const houseRoutes = require('./routes/houseRoutes');
+const ownerRoutes = require('./routes/ownerRoutes');
+const familyRoutes = require('./routes/familyRoutes');
+const photoRoutes = require('./routes/photoRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const exportRoutes = require('./routes/exportRoutes');
+const userRoutes = require('./routes/userRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
+const beatRoutes = require('./routes/beatRoutes');
+const villageRoutes = require('./routes/villageRoutes');
+
+const app = express();
+
+// Security HTTP headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+  })
+);
+
+// CORS configuration for production and local environments
+const rawAllowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  process.env.APP_BASE_URL,
+  process.env.FRONTEND_URL,
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()) : [])
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server)
+      if (!origin) return callback(null, true);
+
+      // Allow configured domains, localhost, and Vercel/Render preview deployments
+      if (
+        rawAllowedOrigins.includes(origin) ||
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:') ||
+        origin.endsWith('.vercel.app') ||
+        origin.endsWith('.onrender.com') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
+        return callback(null, true);
+      }
+
+      callback(null, true);
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+);
+
+// Body parsers
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Logging
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan('dev'));
+}
+
+// Apply rate limiter to general API routes
+app.use('/api', apiLimiter);
+
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    system: 'Smart House Registration and Family Management API',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Mount API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/houses', exportRoutes); // Export routes mounted before standard /:id to prevent param collision
+app.use('/api/houses', houseRoutes);
+app.use('/api/owners', ownerRoutes);
+app.use('/api/family', familyRoutes);
+app.use('/api/photos', photoRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/beats', beatRoutes);
+app.use('/api/villages', villageRoutes);
+
+// Protected uploads folder for photos (with photoController streaming fallback)
+const uploadsDirectory = path.join(__dirname, 'uploads', 'houses');
+app.use('/uploads/houses', express.static(uploadsDirectory));
+
+// 404 handler for unknown API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `API Route ${req.originalUrl} not found.`
+  });
+});
+
+// Centralized error handling middleware
+app.use(errorHandler);
+
+const PORT = process.env.PORT || 5000;
+
+// Initialize Database & Server
+const startServer = async () => {
+  try {
+    await connectDB();
+    await seedInitialData();
+
+    app.listen(PORT, () => {
+      console.log(`=======================================================`);
+      console.log(`Smart House Registration Backend API is running!`);
+      console.log(`URL: http://localhost:${PORT}`);
+      console.log(`Health Check: http://localhost:${PORT}/api/health`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`=======================================================`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err.message);
+  }
+};
+
+startServer();
+
+module.exports = app;
