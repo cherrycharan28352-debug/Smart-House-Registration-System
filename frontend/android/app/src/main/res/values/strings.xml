@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್ - Mane Manege Police</string>
+    <string name="title_activity_main">ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್</string>
+    <string name="package_name">gov.ksp.manemanegepolice</string>
+    <string name="custom_url_scheme">gov.ksp.manemanegepolice</string>
+</resources>
