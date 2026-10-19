@@ -296,6 +296,9 @@ const HomePage = () => {
               <Phone className="w-3.5 h-3.5 mr-1" />
               ತುರ್ತು ಸಹಾಯ: 112
             </div>
+            <Link to="/privacy-policy" className="text-slate-300 hover:text-white font-semibold">
+              ಗೌಪ್ಯತಾ ನೀತಿ / Privacy Policy
+            </Link>
             <Link to="/login" className="text-slate-300 hover:text-white font-semibold">
               ನಿರ್ವಾಹಕರ ಪ್ರವೇಶ / Admin Portal
             </Link>

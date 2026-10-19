@@ -29,6 +29,7 @@ import RegistrationSummaryPage from './pages/RegistrationSummaryPage';
 import ExportPage from './pages/ExportPage';
 import UserManagementPage from './pages/UserManagementPage';
 import SettingsPage from './pages/SettingsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Protected Route Wrapper
@@ -89,7 +90,10 @@ function App() {
       {/* 4. Staff Pending Approval Status Page */}
       <Route path="/staff/pending" element={<PendingApprovalPage />} />
 
-      {/* 5. Protected Dashboard & House Survey Workflow */}
+      {/* 5. Public Privacy Policy (Required for Google Play Store & Apple App Store) */}
+      <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+
+      {/* 6. Protected Dashboard & House Survey Workflow */}
       <Route
         element={
           <ProtectedRoute>
