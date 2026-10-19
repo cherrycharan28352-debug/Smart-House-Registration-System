@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="64" height="64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a8a"/>
+      <stop offset="50%" stop-color="#172554"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="40%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+    <linearGradient id="shieldGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e40af"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)"/>
+
+  <!-- Subtle outer golden border -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-opacity="0.6"/>
+
+  <!-- Shield Shape with Shadow -->
+  <g filter="url(#shadow)">
+    <path d="M256 64 C350 64 380 96 380 96 C380 250 340 370 256 424 C172 370 132 250 132 96 C132 96 162 64 256 64 Z" 
+          fill="url(#shieldGrad)" stroke="url(#goldGrad)" stroke-width="12" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Inner Shield Trim -->
+  <path d="M256 84 C334 84 360 110 360 110 C360 236 326 344 256 394 C186 344 152 236 152 110 C152 110 178 84 256 84 Z" 
+        fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-opacity="0.8"/>
+
+  <!-- Golden Police Star at Top Center -->
+  <polygon points="256,110 264,130 286,132 269,146 274,168 256,156 238,168 243,146 226,132 248,130" 
+           fill="url(#goldGrad)"/>
+
+  <!-- House / Security Survey Emblem -->
+  <!-- Roof -->
+  <polygon points="256,176 330,236 312,236 312,300 200,300 200,236 182,236" fill="none" stroke="url(#goldGrad)" stroke-width="8" stroke-linejoin="round"/>
+  <!-- Door / Keyhole / Shield Core -->
+  <path d="M236 244 H276 V300 H236 Z" fill="url(#goldGrad)" opacity="0.9"/>
+  <!-- Police Beacon / Light -->
+  <circle cx="256" cy="214" r="14" fill="#ef4444"/>
+  <circle cx="256" cy="214" r="7" fill="#ffffff"/>
+
+  <!-- Golden Scales of Justice / Wings motif -->
+  <path d="M190 270 Q256 295 322 270" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Kannada & English Text Banner -->
+  <g text-anchor="middle">
+    <!-- Kannada Title -->
+    <text x="256" y="350" font-family="Arial, 'Noto Sans Kannada', sans-serif" font-weight="900" font-size="28" fill="#ffffff" letter-spacing="1">
+      ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್
+    </text>
+    <!-- Subtitle -->
+    <text x="256" y="380" font-family="Arial, sans-serif" font-weight="700" font-size="14" fill="#fbbf24" letter-spacing="2">
+      POLICE SURVEY &amp; REGISTRY
+    </text>
+    <!-- Emergency Tag -->
+    <text x="256" y="468" font-family="Arial, sans-serif" font-weight="800" font-size="16" fill="#60a5fa" letter-spacing="3">
+      KARNATAKA STATE POLICE
+    </text>
+  </g>
+</svg>

@@ -5,6 +5,7 @@ import { useAuth } from './context/AuthContext';
 // Layout
 import DashboardLayout from './layouts/DashboardLayout';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import MobileInstallBanner from './components/common/MobileInstallBanner';
 
 // Pages
 import HomePage from './pages/HomePage';
@@ -72,7 +73,8 @@ const RoleBasedDashboard = () => {
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Routes>
       {/* 1. Public Homepage (Kannada-first) */}
       <Route path="/" element={<HomePage />} />
 
@@ -159,6 +161,8 @@ function App() {
       {/* 404 Catch-All Page */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    <MobileInstallBanner />
+  </>
   );
 }
 

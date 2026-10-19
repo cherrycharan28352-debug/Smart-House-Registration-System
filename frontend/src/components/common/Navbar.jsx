@@ -10,6 +10,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import InstallAppButton from './InstallAppButton';
 
 const Navbar = ({ setMobileOpen }) => {
   const { user, logout } = useAuth();
@@ -43,8 +44,10 @@ const Navbar = ({ setMobileOpen }) => {
         </div>
       </div>
 
-      {/* Right items: Quick Register House + Notifications + Profile dropdown */}
+      {/* Right items: Install App + Quick Register House + Notifications + Profile dropdown */}
       <div className="flex items-center space-x-2 sm:space-x-3">
+        <InstallAppButton variant="navbar" className="hidden sm:inline-flex" />
+
         {/* Quick action button */}
         <Link
           to="/register-house"

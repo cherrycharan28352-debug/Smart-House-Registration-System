@@ -14,8 +14,10 @@ import {
   Building2,
   FileCheck,
   EyeOff,
-  Clock
+  Clock,
+  Download
 } from 'lucide-react';
+import InstallAppButton from '../components/common/InstallAppButton';
 
 const HomePage = () => {
   return (
@@ -34,6 +36,7 @@ const HomePage = () => {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-3">
+          <InstallAppButton variant="header" className="hidden md:inline-flex text-[11px] py-1" />
           <Link
             to="/staff/login"
             className="inline-flex items-center px-2.5 py-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg shadow-sm transition"
@@ -71,6 +74,7 @@ const HomePage = () => {
         </div>
 
         <div className="flex items-center space-x-2 sm:space-x-3">
+          <InstallAppButton variant="header" />
           <Link
             to="/staff/login"
             className="inline-flex items-center px-3.5 py-2 text-xs font-extrabold text-blue-200 bg-blue-950 hover:bg-blue-900 border border-blue-700/60 rounded-xl transition shadow-sm"
@@ -111,8 +115,13 @@ const HomePage = () => {
             ನಾಗರಿಕರ ಸುರಕ್ಷತೆ, ಅಪರಾಧ ತಡೆಗಟ್ಟುವಿಕೆ, ಹಿರಿಯ ನಾಗರಿಕರ ರಕ್ಷಣೆ ಮತ್ತು ಆಪತ್ಕಾಲೀನ ಸಹಾಯಕ್ಕಾಗಿ ೧೧ (11) ಪೊಲೀಸ್ ಬೀಟ್‌ಗಳ ವ್ಯಾಪ್ತಿಯಲ್ಲಿ ಮನೆಗಳ ಪರಿಶೀಲನೆ ಮತ್ತು ಕುಟುಂಬ ಸದಸ್ಯರ ಅಧಿಕೃತ ನೋಂದಣಿ ವ್ಯವಸ್ಥೆ.
           </p>
 
-          {/* Action Buttons: Separate Admin and Staff options */}
+          {/* Action Buttons: Separate Admin and Staff options + App Download */}
           <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <InstallAppButton
+              variant="primary"
+              className="w-full sm:w-auto px-6 py-3.5 text-xs sm:text-sm font-extrabold shadow-amber-500/30"
+            />
+
             <Link
               to="/admin/login"
               className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 text-xs sm:text-sm font-extrabold text-slate-950 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 hover:from-amber-300 hover:to-amber-500 rounded-2xl shadow-xl shadow-amber-500/20 transition-transform active:scale-95"

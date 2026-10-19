@@ -1,0 +1,76 @@
+{
+  "name": "ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್ - Mane Manege Police",
+  "short_name": "ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್",
+  "description": "ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ - ಮನೆ ಮನೆ ಸರ್ವೇಕ್ಷಣಾ, ಕುಟುಂಬ ಸದಸ್ಯರ ನಿರ್ವಹಣೆ ಮತ್ತು ಸುರಕ್ಷತಾ ನೋಂದಣಿ ಅಧಿಕೃತ ಆ್ಯಪ್ (Karnataka State Police Survey & Registry)",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "window-controls-overlay", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#1e3a8a",
+  "lang": "kn",
+  "categories": ["government", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "ಸಿಬ್ಬಂದಿ ಲಾಗಿನ್ / Staff Login",
+      "short_name": "Staff Login",
+      "description": "Beat Officer Staff Dashboard",
+      "url": "/staff/login",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ನಿರ್ವಾಹಕರ ಲಾಗಿನ್ / Admin Login",
+      "short_name": "Admin Login",
+      "description": "Police Administrator Control Panel",
+      "url": "/admin/login",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "ಹೊಸ ಮನೆ ನೋಂದಣಿ / Register House",
+      "short_name": "Register House",
+      "description": "Register New Household Record",
+      "url": "/register-house",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
