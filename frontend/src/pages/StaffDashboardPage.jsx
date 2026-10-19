@@ -116,12 +116,15 @@ const StaffDashboardPage = () => {
               </span>
             ) : (
               assignedBeats.map((beat) => (
-                <span
+                <Link
                   key={beat}
-                  className="inline-flex items-center px-3 py-1 rounded-xl bg-blue-950/80 border border-blue-400/40 text-blue-200 text-xs font-extrabold shadow-sm"
+                  to={`/beats/${encodeURIComponent(beat)}`}
+                  className="inline-flex items-center px-3.5 py-1.5 rounded-xl bg-blue-950/80 hover:bg-blue-800 border border-blue-400/40 hover:border-amber-400 text-blue-200 hover:text-white text-xs font-extrabold shadow-sm transition group"
+                  title={`View villages under ${beat}`}
                 >
                   🏛️ {beat}
-                </span>
+                  <span className="ml-1.5 text-amber-400 group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+                </Link>
               ))
             )}
 

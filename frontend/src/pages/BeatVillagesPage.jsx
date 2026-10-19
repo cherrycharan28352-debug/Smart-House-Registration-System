@@ -14,7 +14,8 @@ import {
   CheckCircle2,
   Edit3,
   Trash2,
-  FileText
+  FileText,
+  ShieldAlert
 } from 'lucide-react';
 import {
   getBeatByNumber,
@@ -32,8 +33,11 @@ import { useToast } from '../context/ToastContext';
 const BeatVillagesPage = () => {
   const { beatNumber } = useParams();
   const navigate = useNavigate();
-  const { isStaff, isAdmin } = useAuth();
+  const { isStaff, isAdmin, user } = useAuth();
   const toast = useToast();
+
+  const assignedBeats = (user?.assignedBeats || []).map((b) => b.trim().toLowerCase());
+  const isAuthorizedBeat = isAdmin || assignedBeats.includes((beatNumber || '').trim().toLowerCase());
 
   const [beatData, setBeatData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -179,6 +183,37 @@ const BeatVillagesPage = () => {
     }
   };
 
+  if (!isAuthorizedBeat) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4 text-center space-y-6 animate-in fade-in">
+        <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-rose-200">
+          <ShieldAlert className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            ಅನಧಿಕೃತ ಪ್ರವೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ / Access Denied
+          </h1>
+          <p className="text-sm text-slate-600">
+            ನೀವು <strong>{beatNumber}</strong> ಮತ್ತು ಅದರ ಗ್ರಾಮಗಳನ್ನು ಪ್ರವೇಶಿಸಲು ಅಧಿಕಾರ ಹೊಂದಿಲ್ಲ.
+          </p>
+          <div className="p-4 bg-slate-100 rounded-2xl text-xs text-slate-700 max-w-md mx-auto">
+            <strong>ನಿಮಗೆ ನಿಯೋಜಿಸಲಾದ ಅಧಿಕೃತ ಬೀಟ್‌ಗಳು:</strong>{' '}
+            {user?.assignedBeats?.length > 0 ? user.assignedBeats.join(', ') : 'ಯಾವುದೂ ನಿಯೋಜಿಸಲಾಗಿಲ್ಲ'}
+          </div>
+        </div>
+        <div>
+          <button
+            onClick={() => navigate('/staff/dashboard')}
+            className="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            ನನ್ನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ / Return to Staff Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return <LoadingSpinner message={`ಲೋಡ್ ಆಗುತ್ತಿದೆ / Loading villages for ${beatNumber}...`} size="large" />;
   }
@@ -201,14 +236,14 @@ const BeatVillagesPage = () => {
       {/* Breadcrumb / Back button */}
       <div className="flex items-center justify-between">
         <Link
-          to="/dashboard"
+          to={isAdmin ? '/dashboard' : '/staff/dashboard'}
           className="inline-flex items-center text-xs font-bold text-slate-600 hover:text-slate-900 transition"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
-          ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ / Back to 11 Beats Dashboard
+          {isAdmin ? 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ / Back to 11 Beats Dashboard' : 'ನನ್ನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ / Back to My Dashboard'}
         </Link>
 
-        {isStaff && (
+        {isAdmin && (
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setEditBeatModalOpen(true)}
@@ -324,7 +359,7 @@ const BeatVillagesPage = () => {
                       <span className="text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full">
                         {v.houseCount || 0} ಮನೆಗಳು
                       </span>
-                      {isStaff && (
+                      {isAdmin && (
                         <button
                           type="button"
                           onClick={(e) => openEditVillage(e, v)}

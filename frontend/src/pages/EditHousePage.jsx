@@ -6,11 +6,13 @@ import LocationPickerMap from '../components/map/LocationPickerMap';
 import PhotoUploader from '../components/forms/PhotoUploader';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 const EditHousePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { user, isStaff, isAdmin } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -60,6 +62,17 @@ const EditHousePage = () => {
       setLoading(true);
       try {
         const data = await getHouseById(id);
+
+        // Role-based staff jurisdiction check
+        if (isStaff) {
+          const assigned = (user?.assignedBeats || []).map((b) => b.trim().toLowerCase());
+          if (!assigned.includes((data.beatNumber || '').trim().toLowerCase())) {
+            toast.error(`Permission Denied: You cannot edit house registrations in ${data.beatNumber}.`);
+            navigate('/houses');
+            return;
+          }
+        }
+
         setFormData({
           houseNumber: data.houseNumber || '',
           streetName: data.streetName || '',
@@ -108,7 +121,7 @@ const EditHousePage = () => {
     };
 
     fetchRecord();
-  }, [id]);
+  }, [id, isStaff, user]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));

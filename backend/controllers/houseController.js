@@ -47,12 +47,11 @@ exports.getHouses = async (req, res, next) => {
       }
 
       if (beatNumber) {
-        if (!assignedBeats.includes(beatNumber)) {
-          return res.status(200).json({
-            success: true,
-            data: [],
-            pagination: { total: 0, page: pageNum, limit: limitNum, totalPages: 0 },
-            message: `Beat "${beatNumber}" is outside your assigned beats (${assignedBeats.join(', ')}).`
+        const isAssigned = assignedBeats.some((b) => b.trim().toLowerCase() === beatNumber.trim().toLowerCase());
+        if (!isAssigned) {
+          return res.status(403).json({
+            success: false,
+            message: `Permission Denied: Beat "${beatNumber}" is outside your assigned beats (${assignedBeats.join(', ')}).`
           });
         }
         query.beatNumber = new RegExp(`^${beatNumber}$`, 'i');
@@ -470,12 +469,34 @@ exports.updateHouse = async (req, res, next) => {
 
     // Role-based staff check
     if (req.user && req.user.role === 'staff') {
-      const assignedBeats = req.user.assignedBeats || [];
-      if (!assignedBeats.includes(house.beatNumber)) {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
         return res.status(403).json({
           success: false,
           message: 'Permission Denied: You are not authorized to edit houses outside your assigned beat jurisdiction.'
         });
+      }
+
+      if (req.body.beatNumber) {
+        const targetBeat = req.body.beatNumber.trim().toLowerCase();
+        if (!assignedBeats.includes(targetBeat)) {
+          return res.status(403).json({
+            success: false,
+            message: `Permission Denied: You cannot reassign this house to unassigned Beat "${req.body.beatNumber}".`
+          });
+        }
+      }
+
+      if (req.body.village && req.user.assignedVillages && req.user.assignedVillages.length > 0) {
+        const isVilAllowed = req.user.assignedVillages.some(
+          (v) => v.trim().toLowerCase() === req.body.village.trim().toLowerCase()
+        );
+        if (!isVilAllowed) {
+          return res.status(403).json({
+            success: false,
+            message: `Permission Denied: You cannot assign this house to village "${req.body.village}" outside your assigned villages.`
+          });
+        }
       }
     }
 

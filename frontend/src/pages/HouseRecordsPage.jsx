@@ -32,8 +32,12 @@ import { useToast } from '../context/ToastContext';
 
 const HouseRecordsPage = () => {
   const navigate = useNavigate();
-  const { isAdmin, isStaff } = useAuth();
+  const { isAdmin, isStaff, user } = useAuth();
   const toast = useToast();
+
+  const availableBeats = isAdmin
+    ? ['Beat 01', 'Beat 02', 'Beat 03', 'Beat 04', 'Beat 05', 'Beat 06', 'Beat 07', 'Beat 08', 'Beat 09', 'Beat 10', 'Beat 11']
+    : (user?.assignedBeats || []);
 
   const [houses, setHouses] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 1 });
@@ -41,6 +45,7 @@ const HouseRecordsPage = () => {
 
   // Filters & Search
   const [search, setSearch] = useState('');
+  const [beatNumber, setBeatNumber] = useState('');
   const [locality, setLocality] = useState('');
   const [houseType, setHouseType] = useState('');
   const [status, setStatus] = useState('');
@@ -48,7 +53,7 @@ const HouseRecordsPage = () => {
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Metadata for filter dropdowns
-  const [metaOptions, setMetaOptions] = useState({ localities: [], houseTypes: [] });
+  const [metaOptions, setMetaOptions] = useState({ localities: [], houseTypes: [], beats: [] });
 
   // Multi-Selection State
   const [selectedHouseIds, setSelectedHouseIds] = useState([]);
@@ -65,6 +70,7 @@ const HouseRecordsPage = () => {
         page,
         limit: pagination.limit,
         search,
+        beatNumber,
         locality,
         houseType,
         status,
@@ -95,7 +101,7 @@ const HouseRecordsPage = () => {
 
   useEffect(() => {
     fetchRecords(1);
-  }, [locality, houseType, status, sortBy, sortOrder]);
+  }, [beatNumber, locality, houseType, status, sortBy, sortOrder]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -104,6 +110,7 @@ const HouseRecordsPage = () => {
 
   const handleResetFilters = () => {
     setSearch('');
+    setBeatNumber('');
     setLocality('');
     setHouseType('');
     setStatus('');
@@ -251,6 +258,20 @@ const HouseRecordsPage = () => {
             <Filter className="w-3.5 h-3.5 text-blue-600" />
             <span>Filters:</span>
           </div>
+
+          {/* Beat Filter */}
+          <select
+            value={beatNumber}
+            onChange={(e) => setBeatNumber(e.target.value)}
+            className="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
+          >
+            <option value="">{isAdmin ? 'All 11 Beats / ಎಲ್ಲಾ ಬೀಟ್‌ಗಳು' : 'All My Beats / ನನ್ನ ಬೀಟ್‌ಗಳು'}</option>
+            {availableBeats.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
 
           {/* Locality Filter */}
           <select
@@ -497,7 +518,7 @@ const HouseRecordsPage = () => {
                           <Eye className="w-4 h-4" />
                         </Link>
 
-                        {isStaff && (
+                        {(isAdmin || isStaff) && (
                           <Link
                             to={`/houses/${house.houseId || house._id}/edit`}
                             title="Edit House"

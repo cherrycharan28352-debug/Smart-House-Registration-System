@@ -30,6 +30,17 @@ exports.exportSingleHousePDF = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'House registration not found.' });
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot export house records outside your assigned beat jurisdiction.'
+        });
+      }
+    }
+
     await house.populate([
       { path: 'owner' },
       { path: 'familyMembers' },
@@ -61,6 +72,17 @@ exports.exportSingleHouseExcel = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'House registration not found.' });
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot export house records outside your assigned beat jurisdiction.'
+        });
+      }
+    }
+
     await house.populate([
       { path: 'owner' },
       { path: 'familyMembers' },
@@ -90,8 +112,22 @@ exports.exportBulkPDF = async (req, res, next) => {
         filter = { houseId: { $in: houseIds } };
       }
     } else {
-      // If no specific IDs provided, limit to latest 50 records to prevent memory exhaustion
       filter = {};
+    }
+
+    // Staff jurisdiction enforcement on bulk export
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = req.user.assignedBeats || [];
+      if (assignedBeats.length === 0) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: No beats are assigned to your staff account.'
+        });
+      }
+      filter.beatNumber = { $in: assignedBeats };
+      if (req.user.assignedVillages && req.user.assignedVillages.length > 0) {
+        filter.village = { $in: req.user.assignedVillages };
+      }
     }
 
     const houses = await getPopulatedHouses(filter);
@@ -99,7 +135,7 @@ exports.exportBulkPDF = async (req, res, next) => {
     if (houses.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No matching house records found for export.'
+        message: 'No matching house records found for export in your authorized jurisdiction.'
       });
     }
 
@@ -130,12 +166,27 @@ exports.exportBulkExcel = async (req, res, next) => {
       filter = {};
     }
 
+    // Staff jurisdiction enforcement on bulk export
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = req.user.assignedBeats || [];
+      if (assignedBeats.length === 0) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: No beats are assigned to your staff account.'
+        });
+      }
+      filter.beatNumber = { $in: assignedBeats };
+      if (req.user.assignedVillages && req.user.assignedVillages.length > 0) {
+        filter.village = { $in: req.user.assignedVillages };
+      }
+    }
+
     const houses = await getPopulatedHouses(filter);
 
     if (houses.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No matching house records found for export.'
+        message: 'No matching house records found for export in your authorized jurisdiction.'
       });
     }
 

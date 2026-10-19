@@ -17,6 +17,17 @@ exports.uploadHousePhotos = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'House not found.' });
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot upload photos for houses outside your assigned beat jurisdiction.'
+        });
+      }
+    }
+
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
         success: false,
@@ -76,6 +87,17 @@ exports.getHousePhotos = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'House not found.' });
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot view photos for houses outside your assigned beat jurisdiction.'
+        });
+      }
+    }
+
     const photos = await HousePhoto.find({ house: house._id }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, data: photos });
   } catch (err) {
@@ -97,6 +119,20 @@ exports.deleteHousePhoto = async (req, res, next) => {
 
     if (!photo) {
       return res.status(404).json({ success: false, message: 'Photo record not found.' });
+    }
+
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const targetHouse = house || (await House.findById(photo.house));
+      if (targetHouse) {
+        const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+        if (!assignedBeats.includes((targetHouse.beatNumber || '').trim().toLowerCase())) {
+          return res.status(403).json({
+            success: false,
+            message: 'Permission Denied: You cannot delete photos for houses outside your assigned beat jurisdiction.'
+          });
+        }
+      }
     }
 
     // Unlink physical file from disk
@@ -133,6 +169,20 @@ exports.getAllPhotos = async (req, res, next) => {
     const { category = '', search = '', page = 1, limit = 16 } = req.query;
     const query = {};
 
+    // Role-based staff restriction
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = req.user.assignedBeats || [];
+      if (assignedBeats.length === 0) {
+        return res.status(200).json({
+          success: true,
+          data: [],
+          pagination: { total: 0, page: 1, limit, totalPages: 0 }
+        });
+      }
+      const staffHouses = await House.find({ beatNumber: { $in: assignedBeats } }).select('_id');
+      query.house = { $in: staffHouses.map((h) => h._id) };
+    }
+
     if (category) {
       query.category = category;
     }
@@ -143,7 +193,7 @@ exports.getAllPhotos = async (req, res, next) => {
 
     const total = await HousePhoto.countDocuments(query);
     const photos = await HousePhoto.find(query)
-      .populate('house', 'houseId houseNumber streetName locality city houseType')
+      .populate('house', 'houseId houseNumber streetName locality city houseType beatNumber')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -174,6 +224,20 @@ exports.viewPhotoFile = async (req, res, next) => {
 
     if (!photo) {
       return res.status(404).json({ success: false, message: 'Photo not found.' });
+    }
+
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const house = await House.findById(photo.house);
+      if (house) {
+        const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+        if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+          return res.status(403).json({
+            success: false,
+            message: 'Permission Denied: You cannot view photos outside your assigned beat jurisdiction.'
+          });
+        }
+      }
     }
 
     if (!photo.filePath || !fs.existsSync(photo.filePath)) {

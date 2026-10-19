@@ -35,7 +35,7 @@ exports.getBeats = async (req, res, next) => {
     const beats = await Beat.find().sort({ beatNumber: 1 });
 
     // Aggregate real village counts and house counts per beat
-    const beatData = await Promise.all(
+    let beatData = await Promise.all(
       beats.map(async (b) => {
         const villageCount = await Village.countDocuments({ beatNumber: b.beatNumber });
         const houseCount = await House.countDocuments({ beatNumber: b.beatNumber });
@@ -53,6 +53,12 @@ exports.getBeats = async (req, res, next) => {
         };
       })
     );
+
+    // If staff requests beats, filter strictly to assigned beats unless ?all=true is explicitly requested
+    if (req.user && req.user.role === 'staff' && req.query.all !== 'true') {
+      const assigned = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      beatData = beatData.filter((b) => assigned.includes(b.beatNumber.toLowerCase()));
+    }
 
     res.status(200).json({
       success: true,
@@ -74,6 +80,17 @@ exports.getBeatByNumber = async (req, res, next) => {
       beatNumber = `Beat ${num < 10 ? '0' + num : num}`;
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes(beatNumber.trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: `ಅನಧಿಕೃತ ಪ್ರವೇಶ: ನೀವು "${beatNumber}" ಗೆ ನಿಯೋಜನೆ ಹೊಂದಿಲ್ಲ. ನಿಮಗೆ ನಿಗದಿಪಡಿಸಲಾದ ಬೀಟ್‌ಗಳು: ${req.user.assignedBeats.join(', ') || 'ಯಾವುದೂ ಇಲ್ಲ'} / Access Denied: You are not authorized to view ${beatNumber}. Your assigned beats: ${req.user.assignedBeats.join(', ') || 'None'}.`
+        });
+      }
+    }
+
     let beat = await Beat.findOne({ beatNumber: new RegExp(`^${beatNumber}$`, 'i') });
     if (!beat) {
       beat = await Beat.create({
@@ -86,9 +103,15 @@ exports.getBeatByNumber = async (req, res, next) => {
       });
     }
 
-    const villages = await Village.find({
-      beatNumber: new RegExp(`^${beat.beatNumber}$`, 'i')
-    }).sort({ villageId: 1, name: 1 });
+    let villageQuery = { beatNumber: new RegExp(`^${beat.beatNumber}$`, 'i') };
+    if (req.user && req.user.role === 'staff' && req.user.assignedVillages && req.user.assignedVillages.length > 0) {
+      villageQuery.$or = [
+        { name: { $in: req.user.assignedVillages } },
+        { nameKannada: { $in: req.user.assignedVillages } }
+      ];
+    }
+
+    const villages = await Village.find(villageQuery).sort({ villageId: 1, name: 1 });
 
     // Attach house count per village
     const villagesWithCounts = await Promise.all(
@@ -316,6 +339,30 @@ exports.getVillageDetails = async (req, res, next) => {
         success: false,
         message: `Village with identifier "${id}" not found.`
       });
+    }
+
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((village.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: `ಅನಧಿಕೃತ ಪ್ರವೇಶ: ಈ ಗ್ರಾಮವು (${village.name}) ನಿಮ್ಮ ಅಧಿಕೃತ ಬೀಟ್ ವ್ಯಾಪ್ತಿಯಲ್ಲಿಲ್ಲ / Access Denied: Village "${village.name}" is outside your assigned beat jurisdiction (${req.user.assignedBeats.join(', ') || 'None'}).`
+        });
+      }
+      if (req.user.assignedVillages && req.user.assignedVillages.length > 0) {
+        const isVilAssigned = req.user.assignedVillages.some(
+          (v) =>
+            v.trim().toLowerCase() === village.name.trim().toLowerCase() ||
+            v.trim().toLowerCase() === (village.nameKannada || '').trim().toLowerCase()
+        );
+        if (!isVilAssigned) {
+          return res.status(403).json({
+            success: false,
+            message: `ಅನಧಿಕೃತ ಪ್ರವೇಶ: ಈ ಗ್ರಾಮವು ನಿಮ್ಮ ನಿಯೋಜಿತ ಗ್ರಾಮಗಳ ಪಟ್ಟಿಯಲ್ಲಿಲ್ಲ / Access Denied: Village "${village.name}" is not in your assigned villages list.`
+          });
+        }
+      }
     }
 
     // Find actual registered houses in this village

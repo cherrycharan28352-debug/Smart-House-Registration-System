@@ -352,6 +352,19 @@ const RegisterHousePage = () => {
         </div>
       </div>
 
+      {/* Staff Unassigned Beat Warning */}
+      {isStaff && staffBeats.length === 0 && (
+        <div className="p-4 bg-amber-50 rounded-2xl border border-amber-300 text-amber-900 text-xs flex items-start space-x-3 shadow-sm">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-bold text-sm">ಬೀಟ್ ನಿಯೋಜನೆ ಬಾಕಿ ಇದೆ / Beat Assignment Required</p>
+            <p className="mt-0.5">
+              ನಿಮ್ಮ ಸಿಬ್ಬಂದಿ ಖಾತೆಗೆ ಇನ್ನೂ ಯಾವುದೇ ಬೀಟ್ ನಿಯೋಜಿಸಲಾಗಿಲ್ಲ. ಹೊಸ ಮನೆಗಳನ್ನು ನೋಂದಾಯಿಸಲು ದಯವಿಟ್ಟು ಪೊಲೀಸ್ ಠಾಣಾ ನಿರ್ವಾಹಕರನ್ನು (Admin) ಸಂಪರ್ಕಿಸಿ / Your staff account has not been assigned to any beats yet. Please contact the police administrator.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Progress Tabs Header */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-100/80 p-1.5 rounded-2xl">
         {tabs.map((tab) => {

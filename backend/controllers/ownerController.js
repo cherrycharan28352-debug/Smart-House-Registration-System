@@ -15,6 +15,17 @@ exports.getOwnerByHouseId = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'House not found.' });
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot view owner records for houses outside your assigned beat jurisdiction.'
+        });
+      }
+    }
+
     const owner = await Owner.findOne({ house: house._id });
     if (!owner) {
       return res.status(404).json({ success: false, message: 'No owner recorded for this house.' });
@@ -37,6 +48,17 @@ exports.updateOwnerByHouseId = async (req, res, next) => {
 
     if (!house) {
       return res.status(404).json({ success: false, message: 'House not found.' });
+    }
+
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot modify owner records for houses outside your assigned beat jurisdiction.'
+        });
+      }
     }
 
     const {
@@ -103,6 +125,20 @@ exports.getAllOwners = async (req, res, next) => {
     const { page = 1, limit = 10, search = '', ownershipType = '' } = req.query;
     const query = {};
 
+    // Role-based staff restriction
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = req.user.assignedBeats || [];
+      if (assignedBeats.length === 0) {
+        return res.status(200).json({
+          success: true,
+          data: [],
+          pagination: { total: 0, page: 1, limit, totalPages: 0 }
+        });
+      }
+      const staffHouses = await House.find({ beatNumber: { $in: assignedBeats } }).select('_id');
+      query.house = { $in: staffHouses.map((h) => h._id) };
+    }
+
     if (ownershipType) {
       query.ownershipType = ownershipType;
     }
@@ -118,7 +154,7 @@ exports.getAllOwners = async (req, res, next) => {
 
     const total = await Owner.countDocuments(query);
     const owners = await Owner.find(query)
-      .populate('house', 'houseId houseNumber streetName locality city houseType')
+      .populate('house', 'houseId houseNumber streetName locality city houseType beatNumber')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);

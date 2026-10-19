@@ -26,13 +26,15 @@ import {
   ClipboardList,
   CheckCircle2,
   Clock,
-  Briefcase
+  Briefcase,
+  Trash2
 } from 'lucide-react';
 import {
   getHouseById,
   addHouseIssue,
   updateIssueAction,
-  updateHouseSecurity
+  updateHouseSecurity,
+  deleteHouse
 } from '../services/houseService';
 import { downloadSingleHousePDF, downloadSingleHouseExcel } from '../services/exportService';
 import HouseLocationMap from '../components/map/HouseLocationMap';
@@ -79,6 +81,8 @@ const HouseDetailsPage = () => {
     otherArrangements: ''
   });
   const [savingSecurity, setSavingSecurity] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchHouse = async () => {
     setLoading(true);
@@ -96,6 +100,20 @@ const HouseDetailsPage = () => {
   useEffect(() => {
     fetchHouse();
   }, [id]);
+
+  const handleDeleteRecord = async () => {
+    setDeleting(true);
+    try {
+      await deleteHouse(house._id || house.houseId);
+      toast.success(`ಮನೆ ದಾಖಲೆ ${house.houseId} ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ / House record deleted successfully.`);
+      setDeleteModalOpen(false);
+      navigate('/houses');
+    } catch (err) {
+      toast.error(err.message || 'Failed to delete house registration.');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleDownloadPDF = async () => {
     try {
@@ -241,7 +259,7 @@ const HouseDetailsPage = () => {
         </Link>
 
         <div className="flex flex-wrap items-center gap-2">
-          {isStaff && (
+          {(isAdmin || (isStaff && user?.assignedBeats?.includes(house.beatNumber))) && (
             <Link
               to={`/houses/${house.houseId || house._id}/edit`}
               className="inline-flex items-center px-3.5 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition"
@@ -249,6 +267,17 @@ const HouseDetailsPage = () => {
               <Edit className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
               Edit Registration
             </Link>
+          )}
+
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(true)}
+              className="inline-flex items-center px-3.5 py-2 text-xs font-bold text-rose-700 bg-white hover:bg-rose-50 border border-rose-200 rounded-xl transition"
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-1.5 text-rose-600" />
+              Delete Registration
+            </button>
           )}
 
           <button
@@ -1212,6 +1241,42 @@ const HouseDetailsPage = () => {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Admin Delete House Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="ದಾಖಲೆ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ / Delete House Registration"
+      >
+        <div className="space-y-4">
+          <div className="p-4 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 text-xs flex items-start space-x-3">
+            <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold text-sm">ಎಚ್ಚರಿಕೆ: ಈ ಕ್ರಮವನ್ನು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ!</p>
+              <p className="mt-1">
+                ನೀವು ಮನೆ ಸಂಖ್ಯೆ <strong>{house?.houseNumber}</strong> (ID: {house?.houseId}), ಸಂಬಂಧಿಸಿದ ಎಲ್ಲಾ ಕುಟುಂಬ ಸದಸ್ಯರು ಮತ್ತು ಫೋಟೋಗಳನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಲು ಖಚಿತವಾಗಿ ಬಯಸುವಿರಾ?
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center justify-end space-x-2 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(false)}
+              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+            >
+              ರದ್ದುಮಾಡಿ / Cancel
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={handleDeleteRecord}
+              className="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-sm transition disabled:opacity-50"
+            >
+              {deleting ? 'ಅಳಿಸಲಾಗುತ್ತಿದೆ...' : 'ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ / Delete Permanently'}
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

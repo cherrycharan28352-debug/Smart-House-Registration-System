@@ -6,11 +6,12 @@ const {
   updateBeat,
   addVillageToBeat
 } = require('../controllers/beatController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { protect, authorize, optionalProtect } = require('../middleware/authMiddleware');
 
-// Public or authenticated list of 11 beats
-router.get('/', getBeats);
-router.get('/:beatNumber', getBeatByNumber);
+// List of beats: public (for registration) or scoped for authenticated staff
+router.get('/', optionalProtect, getBeats);
+// Individual beat details: protected and restricted by staff beat jurisdiction
+router.get('/:beatNumber', protect, getBeatByNumber);
 
 // Strictly Admin-only management of beats and villages
 router.put('/:beatNumber', protect, authorize('admin'), updateBeat);

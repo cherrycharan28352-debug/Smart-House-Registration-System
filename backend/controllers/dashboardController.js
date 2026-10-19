@@ -8,21 +8,47 @@ const HousePhoto = require('../models/HousePhoto');
 // @access  Private
 exports.getDashboardStats = async (req, res, next) => {
   try {
+    const isStaff = req.user && req.user.role === 'staff';
+    const baseFilter = {};
+
+    if (isStaff) {
+      const assignedBeats = req.user.assignedBeats || [];
+      baseFilter.beatNumber = { $in: assignedBeats };
+      if (req.user.assignedVillages && req.user.assignedVillages.length > 0) {
+        baseFilter.village = { $in: req.user.assignedVillages };
+      }
+    }
+
     // 1. Overall counts
-    const totalHouses = await House.countDocuments();
-    const totalOwners = await Owner.countDocuments();
-    const totalFamilyMembers = await FamilyMember.countDocuments();
-    const totalPhotos = await HousePhoto.countDocuments();
+    const totalHouses = await House.countDocuments(baseFilter);
+    let totalOwners = 0;
+    let totalFamilyMembers = 0;
+    let totalPhotos = 0;
+
+    if (isStaff) {
+      const staffHouses = await House.find(baseFilter).select('_id');
+      const staffHouseIds = staffHouses.map((h) => h._id);
+      totalOwners = await Owner.countDocuments({ house: { $in: staffHouseIds } });
+      totalFamilyMembers = await FamilyMember.countDocuments({ house: { $in: staffHouseIds } });
+      totalPhotos = await HousePhoto.countDocuments({ house: { $in: staffHouseIds } });
+    } else {
+      totalOwners = await Owner.countDocuments();
+      totalFamilyMembers = await FamilyMember.countDocuments();
+      totalPhotos = await HousePhoto.countDocuments();
+    }
 
     // 2. Recent registrations (last 30 days)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const recentRegistrationsCount = await House.countDocuments({
+      ...baseFilter,
       registrationDate: { $gte: thirtyDaysAgo }
     });
 
     // 3. House Type Distribution
-    const houseTypeAggregation = await House.aggregate([
+    const houseTypePipeline = [];
+    if (Object.keys(baseFilter).length > 0) houseTypePipeline.push({ $match: baseFilter });
+    houseTypePipeline.push(
       {
         $group: {
           _id: '$houseType',
@@ -30,7 +56,8 @@ exports.getDashboardStats = async (req, res, next) => {
         }
       },
       { $sort: { count: -1 } }
-    ]);
+    );
+    const houseTypeAggregation = await House.aggregate(houseTypePipeline);
 
     const houseTypeDistribution = houseTypeAggregation.map((item) => ({
       type: item._id || 'Other',
@@ -39,17 +66,20 @@ exports.getDashboardStats = async (req, res, next) => {
     }));
 
     // 4. Ownership Type Distribution
-    const ownershipTypeAggregation = await House.aggregate([
-      {
-        $group: {
-          _id: '$ownershipType',
-          count: { $sum: 1 }
-        }
+    const ownershipPipeline = [];
+    if (Object.keys(baseFilter).length > 0) ownershipPipeline.push({ $match: baseFilter });
+    ownershipPipeline.push({
+      $group: {
+        _id: '$ownershipType',
+        count: { $sum: 1 }
       }
-    ]);
+    });
+    const ownershipTypeAggregation = await House.aggregate(ownershipPipeline);
 
     // 5. Locality Top Distribution
-    const localityAggregation = await House.aggregate([
+    const localityPipeline = [];
+    if (Object.keys(baseFilter).length > 0) localityPipeline.push({ $match: baseFilter });
+    localityPipeline.push(
       {
         $group: {
           _id: '$locality',
@@ -58,7 +88,8 @@ exports.getDashboardStats = async (req, res, next) => {
       },
       { $sort: { count: -1 } },
       { $limit: 6 }
-    ]);
+    );
+    const localityAggregation = await House.aggregate(localityPipeline);
 
     // 6. Registration Trends (Last 6 Months)
     const sixMonthsAgo = new Date();
@@ -66,9 +97,10 @@ exports.getDashboardStats = async (req, res, next) => {
     sixMonthsAgo.setDate(1);
     sixMonthsAgo.setHours(0, 0, 0, 0);
 
-    const monthlyAggregation = await House.aggregate([
+    const monthlyPipeline = [
       {
         $match: {
+          ...baseFilter,
           registrationDate: { $gte: sixMonthsAgo }
         }
       },
@@ -87,7 +119,9 @@ exports.getDashboardStats = async (req, res, next) => {
           '_id.month': 1
         }
       }
-    ]);
+    ];
+
+    const monthlyAggregation = await House.aggregate(monthlyPipeline);
 
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const trends = monthlyAggregation.map((m) => ({
@@ -96,7 +130,7 @@ exports.getDashboardStats = async (req, res, next) => {
     }));
 
     // 7. Recent registrations list (last 6 records)
-    const recentHouses = await House.find()
+    const recentHouses = await House.find(baseFilter)
       .populate('owner', 'fullName contactNumber')
       .populate('familyMembers', 'fullName relationship')
       .sort({ createdAt: -1 })

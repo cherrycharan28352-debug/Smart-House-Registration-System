@@ -13,7 +13,8 @@ import {
   Download,
   Users2,
   RefreshCw,
-  Phone
+  Phone,
+  ShieldAlert
 } from 'lucide-react';
 import { getVillageDetails } from '../services/beatService';
 import { downloadSingleHousePDF, downloadSingleHouseExcel } from '../services/exportService';
@@ -25,7 +26,7 @@ import { useToast } from '../context/ToastContext';
 const VillageDashboardPage = () => {
   const { villageId } = useParams();
   const navigate = useNavigate();
-  const { isStaff } = useAuth();
+  const { isStaff, isAdmin, user } = useAuth();
   const toast = useToast();
 
   const [data, setData] = useState(null);
@@ -39,7 +40,7 @@ const VillageDashboardPage = () => {
       setData(res);
     } catch (err) {
       toast.error('Failed to load village details.');
-      navigate('/dashboard');
+      navigate(isAdmin ? '/dashboard' : '/staff/dashboard');
     } finally {
       setLoading(false);
     }
@@ -76,6 +77,41 @@ const VillageDashboardPage = () => {
   const village = data?.village;
   const houses = data?.houses || [];
 
+  const assignedBeats = (user?.assignedBeats || []).map((b) => b.trim().toLowerCase());
+  const isAuthorizedVillage =
+    isAdmin || (village?.beatNumber && assignedBeats.includes(village.beatNumber.trim().toLowerCase()));
+
+  if (!isAuthorizedVillage) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4 text-center space-y-6 animate-in fade-in">
+        <div className="w-20 h-20 bg-rose-100 text-rose-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner border border-rose-200">
+          <ShieldAlert className="w-10 h-10" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            ಅನಧಿಕೃತ ಪ್ರವೇಶ ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ / Access Denied
+          </h1>
+          <p className="text-sm text-slate-600">
+            ಈ ಗ್ರಾಮವು (<strong>{village?.name}</strong>) ನಿಮ್ಮ ಅಧಿಕೃತ ಬೀಟ್ ವ್ಯಾಪ್ತಿಯಲ್ಲಿಲ್ಲ.
+          </p>
+          <div className="p-4 bg-slate-100 rounded-2xl text-xs text-slate-700 max-w-md mx-auto">
+            <strong>ನಿಮಗೆ ನಿಯೋಜಿಸಲಾದ ಅಧಿಕೃತ ಬೀಟ್‌ಗಳು:</strong>{' '}
+            {user?.assignedBeats?.length > 0 ? user.assignedBeats.join(', ') : 'ಯಾವುದೂ ನಿಯೋಜಿಸಲಾಗಿಲ್ಲ'}
+          </div>
+        </div>
+        <div>
+          <button
+            onClick={() => navigate('/staff/dashboard')}
+            className="inline-flex items-center px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            ನನ್ನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ / Return to Staff Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const filteredHouses = houses.filter((h) => {
     if (!search) return true;
     const term = search.toLowerCase();
@@ -99,7 +135,7 @@ const VillageDashboardPage = () => {
           ಹಿಂದಿನ ಪುಟಕ್ಕೆ ಹಿಂತಿರುಗಿ / Back
         </button>
 
-        {isStaff && (
+        {(isAdmin || isStaff) && (
           <Link
             to={`/register-house?beat=${encodeURIComponent(village?.beatNumber || 'Beat 01')}&village=${encodeURIComponent(village?.name || '')}`}
             className="inline-flex items-center px-4 py-2 text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 rounded-xl shadow-md transition"

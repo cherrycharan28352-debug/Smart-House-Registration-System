@@ -19,6 +19,12 @@ router.use(authorize('admin'));
 // Audit logs
 router.get('/audit-logs', getAuditLogs);
 
+// Pending staff quick filter
+router.get('/pending', (req, res, next) => {
+  req.query.status = 'pending';
+  return getUsers(req, res, next);
+});
+
 // Staff management actions
 router.put('/:id/approve', approveStaff);
 router.put('/:id/reject', rejectStaff);

@@ -15,6 +15,17 @@ exports.getFamilyByHouseId = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'House not found.' });
     }
 
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot view family records for houses outside your assigned beat jurisdiction.'
+        });
+      }
+    }
+
     const members = await FamilyMember.find({ house: house._id }).sort({ createdAt: 1 });
     res.status(200).json({ success: true, data: members });
   } catch (err) {
@@ -33,6 +44,17 @@ exports.addFamilyMember = async (req, res, next) => {
 
     if (!house) {
       return res.status(404).json({ success: false, message: 'House not found.' });
+    }
+
+    // Role-based staff jurisdiction check
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+      if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+        return res.status(403).json({
+          success: false,
+          message: 'Permission Denied: You cannot add family members to houses outside your assigned beat jurisdiction.'
+        });
+      }
     }
 
     const { fullName, relationship, age, gender, occupation, contactNumber } = req.body;
@@ -87,6 +109,20 @@ exports.updateFamilyMember = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Family member record not found.' });
     }
 
+    // Check beat jurisdiction for staff
+    if (req.user && req.user.role === 'staff') {
+      const house = await House.findById(member.house);
+      if (house) {
+        const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+        if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+          return res.status(403).json({
+            success: false,
+            message: 'Permission Denied: You cannot modify family records for houses outside your assigned beat jurisdiction.'
+          });
+        }
+      }
+    }
+
     const { fullName, relationship, age, gender, occupation, contactNumber } = req.body;
 
     if (fullName) member.fullName = fullName;
@@ -121,6 +157,20 @@ exports.deleteFamilyMember = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Family member record not found.' });
     }
 
+    // Check beat jurisdiction for staff
+    if (req.user && req.user.role === 'staff') {
+      const house = await House.findById(member.house);
+      if (house) {
+        const assignedBeats = (req.user.assignedBeats || []).map((b) => b.trim().toLowerCase());
+        if (!assignedBeats.includes((house.beatNumber || '').trim().toLowerCase())) {
+          return res.status(403).json({
+            success: false,
+            message: 'Permission Denied: You cannot remove family records for houses outside your assigned beat jurisdiction.'
+          });
+        }
+      }
+    }
+
     const houseId = member.house;
     await FamilyMember.findByIdAndDelete(member._id);
 
@@ -146,6 +196,20 @@ exports.getAllFamilyMembers = async (req, res, next) => {
     const { page = 1, limit = 10, search = '', relationship = '' } = req.query;
     const query = {};
 
+    // Role-based staff restriction
+    if (req.user && req.user.role === 'staff') {
+      const assignedBeats = req.user.assignedBeats || [];
+      if (assignedBeats.length === 0) {
+        return res.status(200).json({
+          success: true,
+          data: [],
+          pagination: { total: 0, page: 1, limit, totalPages: 0 }
+        });
+      }
+      const staffHouses = await House.find({ beatNumber: { $in: assignedBeats } }).select('_id');
+      query.house = { $in: staffHouses.map((h) => h._id) };
+    }
+
     if (relationship) {
       query.relationship = new RegExp(`^${relationship}$`, 'i');
     }
@@ -161,7 +225,7 @@ exports.getAllFamilyMembers = async (req, res, next) => {
 
     const total = await FamilyMember.countDocuments(query);
     const members = await FamilyMember.find(query)
-      .populate('house', 'houseId houseNumber streetName locality city houseType')
+      .populate('house', 'houseId houseNumber streetName locality city houseType beatNumber')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);

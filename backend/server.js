@@ -6,7 +6,7 @@ const path = require('path');
 const dotenv = require('dotenv');
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const { connectDB } = require('./config/db');
 const mongoose = require('mongoose');

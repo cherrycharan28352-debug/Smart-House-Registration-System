@@ -86,4 +86,31 @@ const authorize = (...roles) => {
   };
 };
 
-module.exports = { protect, authorize };
+const optionalProtect = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET || 'smart_house_secure_dev_jwt_key_2026_antigravity_token'
+    );
+    const user = await User.findById(decoded.id).select('-password');
+    if (user && (user.accountStatus === 'active' || user.accountStatus === 'approved')) {
+      req.user = user;
+    }
+  } catch (err) {
+    // Ignore invalid token on optional auth
+  }
+  next();
+};
+
+module.exports = { protect, authorize, optionalProtect };
