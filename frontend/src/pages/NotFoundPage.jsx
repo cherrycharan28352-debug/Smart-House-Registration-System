@@ -6,13 +6,13 @@ const NotFoundPage = () => {
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 text-center text-white">
       <div className="w-20 h-20 bg-blue-600/20 text-blue-400 rounded-3xl border border-blue-500/30 flex items-center justify-center text-4xl mb-6 shadow-2xl">
-        🏛️
+        👮‍♂️
       </div>
 
       <h1 className="text-6xl font-black tracking-tight text-white mb-2">404</h1>
-      <h2 className="text-xl font-bold text-slate-200 mb-2">Registration Page Not Found</h2>
+      <h2 className="text-xl font-bold text-slate-200 mb-2">Survey Page Not Found</h2>
       <p className="text-xs text-slate-400 max-w-md mb-8">
-        The requested record, dossier route, or resource path could not be located in the municipal registry system.
+        The requested record, survey route, or resource path could not be located in the Mane Manege Police registry system.
       </p>
 
       <div className="flex items-center space-x-3">

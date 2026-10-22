@@ -373,18 +373,9 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
     y += 24;
   }
 
-  // --- Disclaimer Box & Signature Block ---
-  if (y > 680) {
-    doc.addPage();
-    y = 50;
-  }
-
-  doc.rect(40, 715, 532, 45).fillAndStroke('#f8fafc', '#e2e8f0');
-  doc.fontSize(7.5).fillColor(textMuted).font('Helvetica-Oblique')
-     .text('Notice: This official summary report is issued for municipal administrative and census reference purposes. It does not constitute a legal property ownership deed or land boundary title. All captured data is authenticated by the issuing registry staff.', 48, 722, { width: 515 });
-
+  // --- Verification Footer ---
   doc.fontSize(8).fillColor(primaryNavy).font('Helvetica')
-     .text('Municipal Census & Housing Authority | Digital Verification Reference: ' + (house.houseId || 'SHMS'), 48, 745);
+     .text('Karnataka State Police • Digital Verification Reference: ' + (house.houseId || 'KSP'), 48, 755, { align: 'center', width: 515 });
 };
 
 /**

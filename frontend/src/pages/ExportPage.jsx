@@ -98,7 +98,7 @@ const ExportPage = () => {
           Official PDF & Excel Export Center
         </h1>
         <p className="text-sm text-slate-300 mt-1 max-w-2xl">
-          Generate compliant municipal registration documents, multi-page PDF certificates with QR codes and photos, or 4-sheet Excel workbooks with full relational schemas.
+          Generate official police household survey dossiers, multi-page PDF certificates with QR codes and photos, or 4-sheet Excel workbooks with full relational schemas.
         </p>
       </div>
 
@@ -160,7 +160,7 @@ const ExportPage = () => {
                 Official PDF Dossier Export
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Generates a print-ready, high-resolution multi-page PDF compilation formatted to municipal standards.
+                Generates a print-ready, high-resolution multi-page PDF compilation formatted to Karnataka State Police survey standards.
               </p>
             </div>
 

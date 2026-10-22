@@ -27,7 +27,7 @@ const seedInitialData = async () => {
         defaultMapLat: 12.9716, // Karnataka central map reference
         defaultMapLng: 77.5946,
         defaultZoom: 12,
-        pdfDisclaimer: 'ಸೂಚನೆ: ಈ ಸಮೀಕ್ಷಾ ವರದಿಯು "ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್" ಯೋಜನೆಯಡಿ ಸುರಕ್ಷತೆ ಮತ್ತು ಜನಗಣತಿ ಉದ್ದೇಶಕ್ಕಾಗಿ ಸಂಗ್ರಹಿಸಲಾದ ಪೊಲೀಸ್ ಆಡಳಿತಾತ್ಮಕ ದಾಖಲೆಯಾಗಿದೆ. ಇದು ಕಾನೂನುಬದ್ಧ ಆಸ್ತಿ ಹಕ್ಕು ಪತ್ರವಲ್ಲ.'
+        pdfDisclaimer: ''
       });
       console.log('[Seeder] Police administration settings initialized.');
     }

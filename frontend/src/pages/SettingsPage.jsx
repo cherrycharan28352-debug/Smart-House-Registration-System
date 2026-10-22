@@ -101,7 +101,7 @@ const SettingsPage = () => {
           System Settings & Registry Configuration
         </h1>
         <p className="text-xs text-slate-500 mt-0.5">
-          Configure issuing municipal department parameters, default map coordinates, report disclaimers, and account security.
+          Configure police department parameters, default map coordinates, report settings, and account security.
         </p>
       </div>
 

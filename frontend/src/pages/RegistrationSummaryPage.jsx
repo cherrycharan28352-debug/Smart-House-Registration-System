@@ -130,16 +130,16 @@ const RegistrationSummaryPage = () => {
           <div className="border-b-2 border-slate-900 pb-6 flex items-start justify-between">
             <div className="space-y-1">
               <div className="flex items-center space-x-2">
-                <span className="text-2xl">🏛️</span>
+                <span className="text-2xl">👮‍♂️</span>
                 <span className="text-xs font-black tracking-widest uppercase text-blue-900">
-                  MUNICIPAL CENSUS & URBAN HOUSING AUTHORITY
+                  ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ • KARNATAKA STATE POLICE
                 </span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                OFFICIAL HOUSE REGISTRATION CERTIFICATE
+                MANE MANEGE POLICE • ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್
               </h2>
               <p className="text-xs text-slate-500">
-                Official Administrative Dossier & Family Census Extract • Issued under Municipal Regulations
+                Official Police Household & Beat Survey Registry Extract
               </p>
             </div>
 
@@ -325,21 +325,14 @@ const RegistrationSummaryPage = () => {
             )}
           </div>
 
-          {/* Statutory Disclaimer & Signature Block */}
-          <div className="pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-            <div className="max-w-md text-[10px] text-slate-500 space-y-1">
-              <p className="font-bold text-slate-700">Official Municipal Notice:</p>
-              <p>
-                This official summary report is issued for municipal administrative and census reference purposes. It does not constitute a legal property ownership deed or land boundary title.
-              </p>
-            </div>
-
-            <div className="text-center sm:text-right text-xs">
-              <div className="w-44 border-b border-slate-400 pb-1 mb-1 mx-auto sm:ml-auto">
+          {/* Signature Block */}
+          <div className="pt-6 border-t-2 border-slate-200 flex justify-end">
+            <div className="text-right text-xs">
+              <div className="w-48 border-b border-slate-400 pb-1 mb-1 ml-auto">
                 <span className="text-[10px] font-mono text-slate-400">[Digital Seal Verified]</span>
               </div>
-              <p className="font-bold text-slate-900">Registrar / Issuing Officer</p>
-              <p className="text-[10px] text-slate-500">Municipal Housing Department</p>
+              <p className="font-bold text-slate-900">Surveying Officer / Beat In-Charge</p>
+              <p className="text-[10px] text-slate-500">Karnataka State Police Department / ಪೊಲೀಸ್ ಇಲಾಖೆ</p>
             </div>
           </div>
         </div>

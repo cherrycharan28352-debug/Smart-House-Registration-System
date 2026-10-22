@@ -917,13 +917,6 @@ const HouseDetailsPage = () => {
         )}
       </div>
 
-      {/* Legal & Administrative Disclaimer Box */}
-      <div className="p-4 bg-slate-100/80 rounded-2xl border border-slate-200 text-xs text-slate-500">
-        <p className="font-semibold text-slate-700">Official Municipal Registration Document Notice</p>
-        <p className="mt-0.5 text-[11px]">
-          Notice: This official summary report is issued for municipal administrative and census reference purposes. It does not constitute a legal property ownership deed or land boundary title.
-        </p>
-      </div>
 
       {/* Photo Lightbox Modal */}
       <Modal

@@ -28,8 +28,8 @@ const styleWorksheet = (worksheet, headers) => {
  */
 const generateHouseExcel = async (houses, res, filename = 'House_Registration_Export.xlsx') => {
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = 'Smart House Registration System';
-  workbook.lastModifiedBy = 'Municipal Registry';
+  workbook.creator = 'Mane Manege Police Survey System';
+  workbook.lastModifiedBy = 'Karnataka State Police Survey';
   workbook.created = new Date();
   workbook.modified = new Date();
 

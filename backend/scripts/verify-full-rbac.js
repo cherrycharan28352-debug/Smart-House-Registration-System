@@ -5,24 +5,36 @@ dotenv.config({ path: path.join(__dirname, '..', '.env') });
 const http = require('http');
 
 async function waitForServer(baseUrl = 'http://localhost:5000') {
-  console.log(`Waiting for backend server at ${baseUrl} to be ready...`);
-  const maxAttempts = 60;
+  console.log(`Checking backend server at ${baseUrl}...`);
+  try {
+    const res = await fetch(`${baseUrl}/api/health`);
+    if (res.ok) {
+      console.log(`Backend server is already responding.`);
+    }
+  } catch (e) {
+    console.log(`Starting backend server in-process...`);
+    require('../server');
+  }
+
+  console.log('Waiting for database connection and admin initialization...');
+  const maxAttempts = 40;
   for (let i = 0; i < maxAttempts; i++) {
     try {
-      const res = await fetch(`${baseUrl}/api/health`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.database && data.database.connected) {
-          console.log(`Backend and Database are ready! (Host: ${data.database.host || 'in-memory'})\n`);
-          return baseUrl;
-        }
+      const loginCheck = await fetch(`${baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin', password: process.env.ADMIN_PASSWORD || 'AdminPassword@2026' })
+      });
+      if (loginCheck.status === 200) {
+        console.log(`Backend, Database, and Admin account are fully ready!\n`);
+        return baseUrl;
       }
     } catch (e) {
-      // not yet up
+      // still starting up
     }
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 1000));
   }
-  throw new Error('Server did not become ready within timeout.');
+  throw new Error('Server did not become ready with admin authentication within timeout.');
 }
 
 async function request(baseUrl, url, options = {}) {

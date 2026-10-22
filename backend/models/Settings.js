@@ -36,7 +36,7 @@ const settingsSchema = new mongoose.Schema(
     },
     pdfDisclaimer: {
       type: String,
-      default: 'Notice: This official summary report is issued for municipal administrative and census reference purposes. It does not constitute a legal property ownership deed or land boundary title.'
+      default: ''
     },
     allowedHouseTypes: {
       type: [String],
