@@ -30,11 +30,32 @@ mongoose.connection.on('error', (err) => {
 });
 
 /**
+ * Normalizes legacy shard URIs to modern MongoDB Atlas SRV URIs to prevent OpenSSL 3.0 SNI/SSL alert errors
+ */
+function normalizeAtlasUri(rawUri) {
+  if (!rawUri) return rawUri;
+  if (rawUri.startsWith('mongodb://') && rawUri.includes('.mongodb.net')) {
+    const match = rawUri.match(/mongodb:\/\/([^:]+):([^@]+)@ac-[^.]+\.([a-z0-9]+)\.mongodb\.net/i);
+    if (match) {
+      const [, user, pass, clusterId] = match;
+      const dbMatch = rawUri.match(/\/([^/?]+)\?/);
+      const dbName = dbMatch ? dbMatch[1] : 'smart_house_db';
+      console.log(`[MongoDB] Automatically upgrading legacy shard URI to modern Atlas SRV scheme for cluster ${clusterId}...`);
+      return `mongodb+srv://${user}:${pass}@${clusterId}.mongodb.net/${dbName}?authSource=admin&retryWrites=true&w=majority`;
+    }
+  }
+  return rawUri;
+}
+
+/**
  * Connect to Persistent MongoDB Database
  */
 const connectDB = async () => {
   let uri = process.env.MONGODB_URI;
   const isProduction = process.env.NODE_ENV === 'production' || process.env.RENDER === 'true';
+
+  // Normalize legacy MongoDB Atlas direct shard URIs to modern SRV
+  uri = normalizeAtlasUri(uri);
 
   // Detect placeholder strings or invalid URI schemes
   const isPlaceholder =
