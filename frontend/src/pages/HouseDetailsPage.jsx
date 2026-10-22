@@ -135,7 +135,14 @@ const HouseDetailsPage = () => {
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        // proceed
+      }
+    }
     window.print();
   };
 

@@ -2,8 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Bundled local font definitions for offline & mobile environments */
+@font-face {
+  font-family: 'Noto Sans Kannada';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/NotoSansKannada-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Noto Sans Kannada';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/NotoSansKannada-Bold.ttf') format('truetype');
+}
+
 body {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Noto Sans Kannada', system-ui, -apple-system, sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Print CSS: Enforce Unicode Kannada typography, preserve exact colors, prevent clipped text */
+@media print {
+  *, *::before, *::after {
+    font-family: 'Noto Sans Kannada', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  @page {
+    margin: 12mm 10mm;
+    size: A4 portrait;
+  }
 }
 
 /* Custom scrollbars */

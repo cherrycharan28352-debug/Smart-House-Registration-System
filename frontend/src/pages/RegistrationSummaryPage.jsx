@@ -10,7 +10,8 @@ import {
   User,
   Users2,
   Search,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck
 } from 'lucide-react';
 import { getHouses, getHouseById } from '../services/houseService';
 import { downloadSingleHousePDF } from '../services/exportService';
@@ -73,7 +74,14 @@ const RegistrationSummaryPage = () => {
     }
   };
 
-  const handlePrint = () => {
+  const handlePrint = async () => {
+    if (document.fonts && document.fonts.ready) {
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        // proceed
+      }
+    }
     window.print();
   };
 
@@ -188,41 +196,49 @@ const RegistrationSummaryPage = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">House Number:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">House Number / ಮನೆ ಸಂಖ್ಯೆ:</span>
                 <span className="font-bold text-slate-900">{house.houseNumber}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">Street:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Assigned Beat / ಬೀಟ್:</span>
+                <span className="font-bold text-slate-900">{house.beatNumber || 'Beat 01'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Street / ರಸ್ತೆ:</span>
                 <span className="font-bold text-slate-900">{house.streetName}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">Locality / Sector:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Village / Ward / ಗ್ರಾಮ:</span>
+                <span className="font-bold text-slate-900">{house.village || house.city}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Locality / ಬಡಾವಣೆ:</span>
                 <span className="font-bold text-slate-900">{house.locality}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">City / Village:</span>
-                <span className="font-bold text-slate-900">{house.city}</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Taluk / ತಾಲೂಕು:</span>
+                <span className="font-bold text-slate-900">{house.subdistrict || 'ದೊಡ್ಡಬಳ್ಳಾಪುರ'}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">District & State:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">District & State / ಜಿಲ್ಲೆ & ರಾಜ್ಯ:</span>
                 <span className="font-bold text-slate-900">{house.district}, {house.state}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">PIN Code:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">PIN Code / ಪಿನ್ ಕೋಡ್:</span>
                 <span className="font-bold text-slate-900">{house.pincode}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">House Type:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">House Type / ಮಾದರಿ:</span>
                 <span className="font-bold text-slate-900">{house.houseType}</span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">Floors & Rooms:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Floors & Rooms / ಕೊಠಡಿ:</span>
                 <span className="font-bold text-slate-900">
                   {house.numberOfFloors} Floor(s) / {house.numberOfRooms} Room(s)
                 </span>
               </div>
               <div>
-                <span className="text-slate-400 block text-[10px] uppercase font-bold">Ownership Classification:</span>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Ownership / ಹಕ್ಕು:</span>
                 <span className="font-bold text-slate-900">{house.ownershipType}</span>
               </div>
             </div>
@@ -322,6 +338,66 @@ const RegistrationSummaryPage = () => {
               </table>
             ) : (
               <p className="text-xs text-slate-400 italic">No additional family members registered.</p>
+            )}
+          </div>
+
+          {/* Section 5: Security & Issues Survey */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-blue-900 border-b border-blue-100 pb-1.5 flex items-center">
+              <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-blue-700" />
+              5. Security & Issues Survey / ಭದ್ರತಾ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಸಮಸ್ಯೆಗಳ ಸಮೀಕ್ಷೆ
+            </h4>
+
+            {/* Security summary */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">CCTV Installed / ಸಿಸಿಟಿವಿ:</span>
+                <span className={`font-bold ${house.security?.cctvInstalled === 'Yes' ? 'text-emerald-700' : 'text-slate-700'}`}>
+                  {house.security?.cctvInstalled === 'Yes' ? '✓ Installed / ಅಳವಡಿಸಲಾಗಿದೆ' : 'No / ಇಲ್ಲ'}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Security Guard / ಭದ್ರತಾ ಸಿಬ್ಬಂದಿ:</span>
+                <span className={`font-bold ${house.security?.securityGuardPresent === 'Yes' ? 'text-emerald-700' : 'text-slate-700'}`}>
+                  {house.security?.securityGuardPresent === 'Yes' ? '✓ Present / ಹಾಜರಿದ್ದಾರೆ' : 'No / ಇಲ್ಲ'}
+                </span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px] uppercase font-bold">Other / ಇತರೆ ವ್ಯವಸ್ಥೆ:</span>
+                <span className="font-semibold text-slate-700">
+                  {house.security?.otherArrangements || 'None / ಇಲ್ಲ'}
+                </span>
+              </div>
+            </div>
+
+            {/* Issues logged */}
+            {house.issues && house.issues.length > 0 && (
+              <div className="space-y-2 pt-2">
+                <span className="text-[11px] font-bold text-slate-700">
+                  Issues & Suggestions Logged / ದಾಖಲಾದ ಸಮಸ್ಯೆಗಳು ({house.issues.length}):
+                </span>
+                <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden text-xs">
+                  {house.issues.map((iss, iIdx) => (
+                    <div key={iIdx} className="p-2.5 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-slate-900">{iss.category || 'Police'}</span>
+                          <span className="text-[10px] text-slate-400">
+                            {iss.dateReported ? new Date(iss.dateReported).toLocaleDateString() : ''}
+                          </span>
+                        </div>
+                        <p className="text-slate-600 text-xs mt-0.5">{iss.description}</p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase self-start sm:self-center ${
+                        iss.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' :
+                        iss.status === 'In Progress' ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
+                      }`}>
+                        {iss.status || 'Pending'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
 

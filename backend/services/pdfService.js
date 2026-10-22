@@ -3,6 +3,25 @@ const fs = require('fs');
 const path = require('path');
 const { generateHouseQRBuffer } = require('./qrService');
 
+// Font paths for Noto Sans Kannada (supports full Unicode Kannada + Latin)
+const fontsDir = path.join(__dirname, '..', 'fonts');
+const fontRegPath = path.join(fontsDir, 'NotoSansKannada-Regular.ttf');
+const fontBoldPath = path.join(fontsDir, 'NotoSansKannada-Bold.ttf');
+
+const setupDocFonts = (doc) => {
+  if (fs.existsSync(fontRegPath)) {
+    doc.registerFont('Kannada', fontRegPath);
+    doc.registerFont('Kannada-Oblique', fontRegPath);
+  }
+  if (fs.existsSync(fontBoldPath)) {
+    doc.registerFont('Kannada-Bold', fontBoldPath);
+  }
+};
+
+const FONT_REG = fs.existsSync(fontRegPath) ? 'Kannada' : 'Helvetica';
+const FONT_BOLD = fs.existsSync(fontBoldPath) ? 'Kannada-Bold' : 'Helvetica-Bold';
+const FONT_OBLIQUE = fs.existsSync(fontRegPath) ? 'Kannada-Oblique' : 'Helvetica-Oblique';
+
 /**
  * Build a styled registration certificate/report for a single house.
  */
@@ -22,11 +41,11 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
   // --- Header Banner ---
   doc.rect(40, 35, 532, 60).fillAndStroke(lightBg, borderColor);
 
-  doc.fontSize(15).fillColor(secondaryNavy).font('Helvetica-Bold')
-     .text('MANE MANEGE POLICE (ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್)', 50, 45, { width: 400 });
+  doc.fontSize(14).fillColor(secondaryNavy).font(FONT_BOLD)
+     .text('MANE MANEGE POLICE (ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್)', 50, 43, { width: 400 });
   
-  doc.fontSize(8.5).fillColor(textMuted).font('Helvetica')
-     .text('Karnataka State Police • House-to-House Community Survey System', 50, 64)
+  doc.fontSize(8.5).fillColor(textMuted).font(FONT_REG)
+     .text('Karnataka State Police • ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ • Beat Survey Registry', 50, 63)
      .text(`Official Beat Survey Record | Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}`, 50, 76);
 
   // QR Code on Header
@@ -43,50 +62,50 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
   // --- Registration Meta Badge Bar ---
   doc.rect(40, y, 532, 28).fill(primaryNavy);
-  doc.fontSize(11).fillColor('#ffffff').font('Helvetica-Bold')
+  doc.fontSize(10).fillColor('#ffffff').font(FONT_BOLD)
      .text(`HOUSE SURVEY ID: ${house.houseId || 'N/A'} • BEAT: ${house.beatNumber || 'Beat 01'}`, 50, y + 8);
 
   const statusText = `STATUS: ${(house.registrationStatus || 'REGISTERED').toUpperCase()}`;
-  doc.fontSize(10).fillColor('#93c5fd').font('Helvetica-Bold')
+  doc.fontSize(9.5).fillColor('#93c5fd').font(FONT_BOLD)
      .text(statusText, 400, y + 8, { width: 160, align: 'right' });
 
   y += 40;
 
   // --- Section 1: Property & Address Details ---
-  doc.fontSize(11).fillColor(secondaryNavy).font('Helvetica-Bold')
-     .text('1. HOUSE PROPERTY & JURISDICTION SPECIFICATION', 40, y);
+  doc.fontSize(10.5).fillColor(secondaryNavy).font(FONT_BOLD)
+     .text('1. HOUSE PROPERTY & JURISDICTION SPECIFICATION / ಮನೆ ಮತ್ತು ವ್ಯಾಪ್ತಿ ವಿವರ', 40, y);
   doc.moveTo(40, y + 14).lineTo(572, y + 14).strokeColor(accentBlue).lineWidth(1.5).stroke();
 
   y += 22;
 
   const col1X = 45;
   const col2X = 310;
-  const rowHeight = 16;
+  const rowHeight = 17;
 
   const propRows = [
-    { label1: 'House Number:', val1: house.houseNumber || 'N/A', label2: 'Assigned Beat:', val2: house.beatNumber || 'Beat 01' },
-    { label1: 'Street / Lane:', val1: house.streetName || 'N/A', label2: 'Village / Ward:', val2: house.village || house.city || 'N/A' },
-    { label1: 'Locality / Sector:', val1: house.locality || 'N/A', label2: 'House Type:', val2: house.houseType || 'N/A' },
-    { label1: 'Subdistrict / Taluk:', val1: house.subdistrict || 'N/A', label2: 'Floors / Rooms:', val2: `${house.numberOfFloors || 1} Floor(s) / ${house.numberOfRooms || 1} Room(s)` },
-    { label1: 'District & State:', val1: `${house.district || 'N/A'}, ${house.state || 'Karnataka'}`, label2: 'Ownership Type:', val2: house.ownershipType || 'N/A' },
-    { label1: 'PIN Code:', val1: house.pincode || 'N/A', label2: 'Survey Date:', val2: house.registrationDate ? new Date(house.registrationDate).toLocaleDateString() : 'N/A' }
+    { label1: 'House Number / ಸಂಖ್ಯೆ:', val1: house.houseNumber || 'N/A', label2: 'Assigned Beat / ಬೀಟ್:', val2: house.beatNumber || 'Beat 01' },
+    { label1: 'Street / ರಸ್ತೆ:', val1: house.streetName || 'N/A', label2: 'Village/Ward / ಗ್ರಾಮ:', val2: house.village || house.city || 'N/A' },
+    { label1: 'Locality / ಬಡಾವಣೆ:', val1: house.locality || 'N/A', label2: 'House Type / ಮಾದರಿ:', val2: house.houseType || 'N/A' },
+    { label1: 'Subdistrict/Taluk / ತಾಲೂಕು:', val1: house.subdistrict || 'N/A', label2: 'Floors/Rooms / ಕೊಠಡಿ:', val2: `${house.numberOfFloors || 1} Floor(s) / ${house.numberOfRooms || 1} Room(s)` },
+    { label1: 'District & State / ಜಿಲ್ಲೆ:', val1: `${house.district || 'N/A'}, ${house.state || 'Karnataka'}`, label2: 'Ownership / ಹಕ್ಕು:', val2: house.ownershipType || 'N/A' },
+    { label1: 'PIN Code / ಪಿನ್ ಕೋಡ್:', val1: house.pincode || 'N/A', label2: 'Survey Date / ದಿನಾಂಕ:', val2: house.registrationDate ? new Date(house.registrationDate).toLocaleDateString() : 'N/A' }
   ];
 
-  doc.fontSize(9).font('Helvetica');
+  doc.fontSize(8.5).font(FONT_REG);
   propRows.forEach((r) => {
-    doc.fillColor(textMuted).font('Helvetica-Bold').text(r.label1, col1X, y, { width: 110 });
-    doc.fillColor(textDark).font('Helvetica').text(r.val1, col1X + 115, y, { width: 140 });
+    doc.fillColor(textMuted).font(FONT_BOLD).text(r.label1, col1X, y, { width: 115 });
+    doc.fillColor(textDark).font(FONT_REG).text(r.val1, col1X + 120, y, { width: 135 });
 
-    doc.fillColor(textMuted).font('Helvetica-Bold').text(r.label2, col2X, y, { width: 110 });
-    doc.fillColor(textDark).font('Helvetica').text(r.val2, col2X + 115, y, { width: 140 });
+    doc.fillColor(textMuted).font(FONT_BOLD).text(r.label2, col2X, y, { width: 115 });
+    doc.fillColor(textDark).font(FONT_REG).text(r.val2, col2X + 120, y, { width: 135 });
     y += rowHeight;
   });
 
   y += 10;
 
   // --- Section 2: GPS Location & Geodetic Data ---
-  doc.fontSize(11).fillColor(secondaryNavy).font('Helvetica-Bold')
-     .text('2. GPS GEOLOCATION & MAPPING COORDINATES', 40, y);
+  doc.fontSize(10.5).fillColor(secondaryNavy).font(FONT_BOLD)
+     .text('2. GPS GEOLOCATION & MAPPING COORDINATES / ಜಿಪಿಎಸ್ ಸ್ಥಳ ನಿರ್ದೇಶಾಂಕಗಳು', 40, y);
   doc.moveTo(40, y + 14).lineTo(572, y + 14).strokeColor(accentBlue).lineWidth(1.5).stroke();
 
   y += 22;
@@ -98,55 +117,55 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
   const acc = hasLat && house.gps.accuracy ? `${house.gps.accuracy} meters` : (hasLat ? 'Verified Fix' : 'Optional / Not Tagged');
   const gmapsUrl = hasLat && hasLng ? `https://www.google.com/maps?q=${lat},${lng}` : 'N/A';
 
-  doc.fontSize(9);
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Latitude:', col1X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica').text(lat, col1X + 115, y, { width: 140 });
+  doc.fontSize(8.5);
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Latitude / ಅಕ್ಷಾಂಶ:', col1X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_REG).text(lat, col1X + 120, y, { width: 135 });
 
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Longitude:', col2X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica').text(lng, col2X + 115, y, { width: 140 });
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Longitude / ರೇಖಾಂಶ:', col2X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_REG).text(lng, col2X + 120, y, { width: 135 });
   y += rowHeight;
 
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('GPS Accuracy:', col1X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica').text(acc, col1X + 115, y, { width: 140 });
+  doc.fillColor(textMuted).font(FONT_BOLD).text('GPS Accuracy:', col1X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_REG).text(acc, col1X + 120, y, { width: 135 });
 
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Google Maps:', col2X, y, { width: 110 });
-  doc.fillColor(accentBlue).font('Helvetica').text(gmapsUrl, col2X + 115, y, { width: 140, underline: hasLat });
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Google Maps:', col2X, y, { width: 115 });
+  doc.fillColor(accentBlue).font(FONT_REG).text(gmapsUrl, col2X + 120, y, { width: 135, underline: hasLat });
   y += rowHeight + 10;
 
   // --- Section 3: Owner Information ---
-  doc.fontSize(11).fillColor(secondaryNavy).font('Helvetica-Bold')
-     .text('3. REGISTERED HOUSE OWNER INFORMATION', 40, y);
+  doc.fontSize(10.5).fillColor(secondaryNavy).font(FONT_BOLD)
+     .text('3. REGISTERED HOUSE OWNER INFORMATION / ಮಾಲೀಕರ ಮಾಹಿತಿ', 40, y);
   doc.moveTo(40, y + 14).lineTo(572, y + 14).strokeColor(accentBlue).lineWidth(1.5).stroke();
 
   y += 22;
 
   const owner = house.owner || {};
-  doc.fontSize(9);
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Owner Full Name:', col1X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica-Bold').text(owner.fullName || 'Not recorded', col1X + 115, y, { width: 140 });
+  doc.fontSize(8.5);
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Owner Name / ಹೆಸರು:', col1X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_BOLD).text(owner.fullName || 'Not recorded', col1X + 120, y, { width: 135 });
 
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Owner Reference ID:', col2X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica').text(owner.ownerId || 'N/A', col2X + 115, y, { width: 140 });
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Owner ID / ಐಡಿ:', col2X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_REG).text(owner.ownerId || 'N/A', col2X + 120, y, { width: 135 });
   y += rowHeight;
 
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Contact Phone:', col1X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica').text(owner.contactNumber || 'N/A', col1X + 115, y, { width: 140 });
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Contact / ದೂರವಾಣಿ:', col1X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_REG).text(owner.contactNumber || 'N/A', col1X + 120, y, { width: 135 });
 
-  doc.fillColor(textMuted).font('Helvetica-Bold').text('Email Address:', col2X, y, { width: 110 });
-  doc.fillColor(textDark).font('Helvetica').text(owner.email || 'N/A', col2X + 115, y, { width: 140 });
+  doc.fillColor(textMuted).font(FONT_BOLD).text('Email / ಇಮೇಲ್:', col2X, y, { width: 115 });
+  doc.fillColor(textDark).font(FONT_REG).text(owner.email || 'N/A', col2X + 120, y, { width: 135 });
   y += rowHeight;
 
   if (owner.correspondenceAddress) {
-    doc.fillColor(textMuted).font('Helvetica-Bold').text('Alt. Correspondence:', col1X, y, { width: 110 });
-    doc.fillColor(textDark).font('Helvetica').text(owner.correspondenceAddress, col1X + 115, y, { width: 380 });
+    doc.fillColor(textMuted).font(FONT_BOLD).text('Alt. Address / ವಿಳಾಸ:', col1X, y, { width: 115 });
+    doc.fillColor(textDark).font(FONT_REG).text(owner.correspondenceAddress, col1X + 120, y, { width: 380 });
     y += rowHeight;
   }
 
   y += 10;
 
   // --- Section 4: Household & Family Members ---
-  doc.fontSize(11).fillColor(secondaryNavy).font('Helvetica-Bold')
-     .text(`4. HOUSEHOLD & FAMILY MEMBERS (${(house.familyMembers && house.familyMembers.length) || 0} Registered)`, 40, y);
+  doc.fontSize(10.5).fillColor(secondaryNavy).font(FONT_BOLD)
+     .text(`4. HOUSEHOLD & FAMILY MEMBERS / ಕುಟುಂಬ ಸದಸ್ಯರ ವಿವರ (${(house.familyMembers && house.familyMembers.length) || 0} Registered)`, 40, y);
   doc.moveTo(40, y + 14).lineTo(572, y + 14).strokeColor(accentBlue).lineWidth(1.5).stroke();
 
   y += 22;
@@ -155,15 +174,15 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
   // Table Header
   const tableX = 40;
-  const colWidths = [35, 145, 95, 45, 60, 85, 67];
-  const tableHeaders = ['#', 'Full Name', 'Relationship', 'Age', 'Gender', 'Occupation', 'Contact'];
+  const colWidths = [30, 140, 95, 55, 55, 85, 72];
+  const tableHeaders = ['#', 'Full Name / ಹೆಸರು', 'Relationship / ಸಂಬಂಧ', 'Age', 'Gender', 'Occupation / ಉದ್ಯೋಗ', 'Contact'];
 
   doc.rect(tableX, y, 532, 18).fill('#e2e8f0');
-  doc.fillColor(primaryNavy).font('Helvetica-Bold').fontSize(8.5);
+  doc.fillColor(primaryNavy).font(FONT_BOLD).fontSize(8);
 
   let curX = tableX + 5;
   tableHeaders.forEach((h, idx) => {
-    doc.text(h, curX, y + 5, { width: colWidths[idx] });
+    doc.text(h, curX, y + 4, { width: colWidths[idx] });
     curX += colWidths[idx];
   });
 
@@ -171,8 +190,8 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
   if (family.length === 0) {
     doc.rect(tableX, y, 532, 18).strokeColor(borderColor).stroke();
-    doc.fillColor(textMuted).font('Helvetica-Oblique').fontSize(8.5)
-       .text('No separate family members recorded for this registration.', tableX + 10, y + 5);
+    doc.fillColor(textMuted).font(FONT_OBLIQUE).fontSize(8)
+       .text('No separate family members recorded for this registration.', tableX + 10, y + 4);
     y += 22;
   } else {
     family.forEach((m, idx) => {
@@ -183,10 +202,10 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
       }
 
       if (idx % 2 === 1) {
-        doc.rect(tableX, y, 532, 17).fill('#f8fafc');
+        doc.rect(tableX, y, 532, 18).fill('#f8fafc');
       }
 
-      doc.fillColor(textDark).font('Helvetica').fontSize(8);
+      doc.fillColor(textDark).font(FONT_REG).fontSize(8);
       let rowX = tableX + 5;
 
       const cells = [
@@ -204,8 +223,8 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
         rowX += colWidths[cIdx];
       });
 
-      doc.moveTo(tableX, y + 17).lineTo(572, y + 17).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
-      y += 18;
+      doc.moveTo(tableX, y + 18).lineTo(572, y + 18).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
+      y += 19;
     });
   }
 
@@ -217,7 +236,7 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
     y = 45;
   }
 
-  doc.fontSize(11).fillColor(secondaryNavy).font('Helvetica-Bold')
+  doc.fontSize(10.5).fillColor(secondaryNavy).font(FONT_BOLD)
      .text('5. SECURITY & ISSUES SURVEY / ಭದ್ರತಾ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಸಮಸ್ಯೆಗಳ ಸಮೀಕ್ಷೆ', 40, y);
   doc.moveTo(40, y + 14).lineTo(572, y + 14).strokeColor(accentBlue).lineWidth(1.5).stroke();
 
@@ -225,39 +244,39 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
   // Security Present on Premises Summary Box
   doc.rect(40, y, 532, 24).fill('#f1f5f9');
-  doc.fontSize(8.5);
+  doc.fontSize(8);
 
   const cctv = house.security?.cctvInstalled === 'Yes' ? 'YES (Installed)' : 'NO';
   const guard = house.security?.securityGuardPresent === 'Yes' ? 'YES (Present)' : 'NO';
   const otherSec = house.security?.otherArrangements ? house.security.otherArrangements : 'None recorded';
 
-  doc.fillColor(primaryNavy).font('Helvetica-Bold').text('CCTV Installed:', 50, y + 6);
-  doc.fillColor(house.security?.cctvInstalled === 'Yes' ? '#16a34a' : textDark).font('Helvetica').text(cctv, 130, y + 6);
+  doc.fillColor(primaryNavy).font(FONT_BOLD).text('CCTV Installed / ಸಿಸಿಟಿವಿ:', 50, y + 6);
+  doc.fillColor(house.security?.cctvInstalled === 'Yes' ? '#16a34a' : textDark).font(FONT_REG).text(cctv, 160, y + 6);
 
-  doc.fillColor(primaryNavy).font('Helvetica-Bold').text('Security Guard:', 220, y + 6);
-  doc.fillColor(house.security?.securityGuardPresent === 'Yes' ? '#16a34a' : textDark).font('Helvetica').text(guard, 305, y + 6);
+  doc.fillColor(primaryNavy).font(FONT_BOLD).text('Security Guard / ಭದ್ರತಾ ಸಿಬ್ಬಂದಿ:', 240, y + 6);
+  doc.fillColor(house.security?.securityGuardPresent === 'Yes' ? '#16a34a' : textDark).font(FONT_REG).text(guard, 370, y + 6);
 
-  doc.fillColor(primaryNavy).font('Helvetica-Bold').text('Other Arrangements:', 380, y + 6);
-  doc.fillColor(textDark).font('Helvetica').text(otherSec, 490, y + 6, { width: 75, ellipsis: true });
+  doc.fillColor(primaryNavy).font(FONT_BOLD).text('Other:', 430, y + 6);
+  doc.fillColor(textDark).font(FONT_REG).text(otherSec, 465, y + 6, { width: 100, ellipsis: true });
 
   y += 32;
 
   // Issues and Suggestions Table
   const issuesList = house.issues || [];
-  doc.fontSize(9.5).fillColor(secondaryNavy).font('Helvetica-Bold')
-     .text(`Issues & Suggestions Received (${issuesList.length} Logged):`, 40, y);
+  doc.fontSize(9).fillColor(secondaryNavy).font(FONT_BOLD)
+     .text(`Issues & Suggestions Received / ಸಮಸ್ಯೆಗಳು ಮತ್ತು ಸಲಹೆಗಳು (${issuesList.length} Logged):`, 40, y);
 
   y += 15;
 
   const issueColWidths = [25, 65, 80, 160, 135, 67];
-  const issueHeaders = ['#', 'Date', 'Category', 'Issue / Suggestion', 'Action Taken & Dept', 'Status'];
+  const issueHeaders = ['#', 'Date / ದಿನಾಂಕ', 'Category / ವರ್ಗ', 'Issue / Suggestion / ವಿವರ', 'Action Taken & Dept', 'Status / ಸ್ಥಿತಿ'];
 
   doc.rect(40, y, 532, 18).fill('#e2e8f0');
-  doc.fillColor(primaryNavy).font('Helvetica-Bold').fontSize(8);
+  doc.fillColor(primaryNavy).font(FONT_BOLD).fontSize(7.5);
 
   let issueHeaderX = 45;
   issueHeaders.forEach((h, idx) => {
-    doc.text(h, issueHeaderX, y + 5, { width: issueColWidths[idx] });
+    doc.text(h, issueHeaderX, y + 4, { width: issueColWidths[idx] });
     issueHeaderX += issueColWidths[idx];
   });
 
@@ -265,8 +284,8 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
   if (issuesList.length === 0) {
     doc.rect(40, y, 532, 18).strokeColor(borderColor).stroke();
-    doc.fillColor(textMuted).font('Helvetica-Oblique').fontSize(8)
-       .text('No public issues or grievance suggestions recorded during this survey.', 50, y + 5);
+    doc.fillColor(textMuted).font(FONT_OBLIQUE).fontSize(7.5)
+       .text('No public issues or grievance suggestions recorded during this survey.', 50, y + 4);
     y += 24;
   } else {
     issuesList.forEach((iss, idx) => {
@@ -279,7 +298,7 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
         doc.rect(40, y, 532, 20).fill('#f8fafc');
       }
 
-      doc.fillColor(textDark).font('Helvetica').fontSize(7.5);
+      doc.fillColor(textDark).font(FONT_REG).fontSize(7.5);
       let curX = 45;
 
       const dateStr = iss.dateReported ? new Date(iss.dateReported).toLocaleDateString() : 'N/A';
@@ -294,17 +313,17 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
       doc.text(dateStr, curX, y + 4, { width: issueColWidths[1] });
       curX += issueColWidths[1];
 
-      doc.font('Helvetica-Bold').text(catStr, curX, y + 4, { width: issueColWidths[2] });
+      doc.font(FONT_BOLD).text(catStr, curX, y + 4, { width: issueColWidths[2] });
       curX += issueColWidths[2];
 
-      doc.font('Helvetica').text(descStr, curX, y + 4, { width: issueColWidths[3], ellipsis: true });
+      doc.font(FONT_REG).text(descStr, curX, y + 4, { width: issueColWidths[3], ellipsis: true });
       curX += issueColWidths[3];
 
       doc.text(actionStr, curX, y + 4, { width: issueColWidths[4], ellipsis: true });
       curX += issueColWidths[4];
 
       const statusColor = iss.status === 'Resolved' ? '#16a34a' : (iss.status === 'In Progress' ? '#2563eb' : '#d97706');
-      doc.fillColor(statusColor).font('Helvetica-Bold').text(statusStr, curX, y + 4, { width: issueColWidths[5] });
+      doc.fillColor(statusColor).font(FONT_BOLD).text(statusStr, curX, y + 4, { width: issueColWidths[5] });
 
       doc.moveTo(40, y + 20).lineTo(572, y + 20).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
       y += 22;
@@ -316,14 +335,13 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
   // --- Section 6: House Photographs (if any) ---
   const photos = house.photos || [];
   if (photos.length > 0) {
-    // If we're too close to the bottom, start a new page
     if (y > 550) {
       doc.addPage();
       y = 45;
     }
 
-    doc.fontSize(11).fillColor(secondaryNavy).font('Helvetica-Bold')
-       .text(`6. HOUSE PHOTOGRAPHS & ON-SITE IMAGERY (${photos.length} Captured)`, 40, y);
+    doc.fontSize(10.5).fillColor(secondaryNavy).font(FONT_BOLD)
+       .text(`6. HOUSE PHOTOGRAPHS & ON-SITE IMAGERY / ಛಾಯಾಚಿತ್ರಗಳು (${photos.length} Captured)`, 40, y);
     doc.moveTo(40, y + 14).lineTo(572, y + 14).strokeColor(accentBlue).lineWidth(1.5).stroke();
 
     y += 22;
@@ -347,13 +365,13 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
       if (!imageRendered) {
         doc.rect(photoX, y, photoWidth, photoHeight).fillAndStroke('#f1f5f9', '#cbd5e1');
-        doc.fillColor(textMuted).fontSize(8).font('Helvetica')
+        doc.fillColor(textMuted).fontSize(7.5).font(FONT_REG)
            .text(`[${p.category || 'Photo'}]`, photoX + 10, y + 35, { width: photoWidth - 20, align: 'center' });
       }
 
       // Caption
       doc.rect(photoX, y + photoHeight, photoWidth, 16).fill('#1e293b');
-      doc.fillColor('#ffffff').fontSize(7.5).font('Helvetica-Bold')
+      doc.fillColor('#ffffff').fontSize(7.5).font(FONT_BOLD)
          .text(`${p.category || 'View'}`, photoX + 4, y + photoHeight + 4, { width: photoWidth - 8, align: 'center' });
 
       photoX += photoWidth + 14;
@@ -368,14 +386,14 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
       doc.addPage();
       y = 45;
     }
-    doc.fontSize(9).fillColor(textMuted).font('Helvetica-Bold').text('Remarks & Field Notes:', 40, y);
-    doc.fontSize(8.5).fillColor(textDark).font('Helvetica').text(house.remarks, 170, y, { width: 400 });
+    doc.fontSize(8.5).fillColor(textMuted).font(FONT_BOLD).text('Remarks & Field Notes / ಷರಾ:', 40, y);
+    doc.fontSize(8).fillColor(textDark).font(FONT_REG).text(house.remarks, 170, y, { width: 400 });
     y += 24;
   }
 
   // --- Verification Footer ---
-  doc.fontSize(8).fillColor(primaryNavy).font('Helvetica')
-     .text('Karnataka State Police • Digital Verification Reference: ' + (house.houseId || 'KSP'), 48, 755, { align: 'center', width: 515 });
+  doc.fontSize(7.5).fillColor(primaryNavy).font(FONT_REG)
+     .text('Karnataka State Police • ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ • Digital Verification Reference: ' + (house.houseId || 'KSP'), 48, 755, { align: 'center', width: 515 });
 };
 
 /**
@@ -387,6 +405,8 @@ const generateSingleHousePDF = async (house, res) => {
     size: 'A4',
     bufferPages: true
   });
+
+  setupDocFonts(doc);
 
   const filename = `House_Registration_${house.houseId || 'Report'}.pdf`;
 
@@ -401,7 +421,7 @@ const generateSingleHousePDF = async (house, res) => {
   const totalPages = doc.bufferedPageRange().count;
   for (let i = 0; i < totalPages; i++) {
     doc.switchToPage(i);
-    doc.fontSize(7.5).fillColor('#94a3b8').font('Helvetica')
+    doc.fontSize(7.5).fillColor('#94a3b8').font(FONT_REG)
        .text(`Page ${i + 1} of ${totalPages}`, 40, 765, { width: 532, align: 'right' });
   }
 
@@ -418,6 +438,8 @@ const generateBulkHousePDF = async (houses, res) => {
     bufferPages: true
   });
 
+  setupDocFonts(doc);
+
   const filename = `House_Registrations_Bulk_${new Date().toISOString().slice(0, 10)}.pdf`;
 
   res.setHeader('Content-Type', 'application/pdf');
@@ -433,7 +455,7 @@ const generateBulkHousePDF = async (houses, res) => {
   const totalPages = doc.bufferedPageRange().count;
   for (let i = 0; i < totalPages; i++) {
     doc.switchToPage(i);
-    doc.fontSize(7.5).fillColor('#94a3b8').font('Helvetica')
+    doc.fontSize(7.5).fillColor('#94a3b8').font(FONT_REG)
        .text(`Page ${i + 1} of ${totalPages}`, 40, 765, { width: 532, align: 'right' });
   }
 
