@@ -91,27 +91,8 @@ const seedInitialData = async () => {
       console.log('[Seeder] Station auditor account verified (viewer).');
     }
 
-    // 3. Clear any previous demo / placeholder house registrations, owners, family, and sample villages
-    const demoHouseIds = ['MMP-1001', 'MMP-1002', 'MMP-1003', 'MMP-1004', 'HR-1001', 'HR-1002', 'HR-1003', 'HR-1004', 'HR-1005'];
-    const demoFound = await House.find({ houseId: { $in: demoHouseIds } });
-    if (demoFound.length > 0) {
-      console.log('[Seeder] Purging placeholder/demo house registrations...');
-      await House.deleteMany({ houseId: { $in: demoHouseIds } });
-      await Owner.deleteMany({ ownerId: { $in: ['OWN-1001', 'OWN-1002', 'OWN-1003', 'OWN-1004'] } });
-      await FamilyMember.deleteMany({ memberId: { $in: ['FAM-1001', 'FAM-1002', 'FAM-1003', 'FAM-1004'] } });
-    }
-
-    // Clean up sample villages if any exist from old demo seeds
-    const sampleVillageNames = [
-      'Ramanagara', 'Vidyaniketan Colony', 'Gandhi Nagar', 'Gandhinagar',
-      'Malleshwaram Ward', 'Vyalikaval', 'Halasuru Village', 'Indiranagar East',
-      'Koramangala 4th Block', 'Jayanagar 9th Block', 'Basavanagudi', 'Chamarajpet',
-      'Peenya Industrial Area', 'Dasarahalli Village', 'Kengeri Satellite Town',
-      'Kumbalgodu Village', 'Nelamangala Highway Colony', 'Solur Gate',
-      'Yelahanka Old Town', 'Jakkur Lake Layout', 'Whitefield Village',
-      'Kadugodi Colony', 'Electronic City Phase 1', 'Hebbagodi Village'
-    ];
-    await Village.deleteMany({ name: { $in: sampleVillageNames } });
+    // 3. Permanent Data Protection: Never purge, clear, or delete registered houses or villages on startup!
+    // All saved registrations in MongoDB Atlas remain permanent and untouched.
 
     // 4. Ensure exactly 11 Beats exist with clean, configurable structure
     const kannadaDigits = ['೦೧', '೦೨', '೦೩', '೦೪', '೦೫', '೦೬', '೦೭', '೦೮', '೦೯', '೧೦', '೧೧'];

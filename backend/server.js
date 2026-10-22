@@ -94,18 +94,25 @@ app.get('/', (req, res) => {
   });
 });
 
-// Health check endpoint
+// Health & Database Persistence check endpoint
 app.get('/api/health', (req, res) => {
   const isDbReady = mongoose.connection.readyState === 1;
+  const isPersistent = global.isPersistentStorage === true;
+
   res.status(200).json({
-    status: isDbReady ? 'healthy' : 'initializing',
+    status: isDbReady ? (isPersistent ? 'healthy' : 'warning_ephemeral_storage') : 'disconnected',
     database: {
       connected: isDbReady,
       readyState: mongoose.connection.readyState,
       host: mongoose.connection.host || null,
+      isPersistent: isPersistent,
+      storageType: global.storageType || 'unknown',
+      persistenceWarning: isPersistent
+        ? null
+        : 'ATTENTION: Server is running on ephemeral storage. Survey registrations will be lost if backend restarts. Configure MONGODB_URI with your MongoDB Atlas connection string.',
       error: global.lastDbError || null
     },
-    system: 'Smart House Registration and Family Management API',
+    system: 'Mane Manege Police (ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್) Survey API',
     timestamp: new Date().toISOString()
   });
 });

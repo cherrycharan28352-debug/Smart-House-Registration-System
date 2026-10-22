@@ -6,52 +6,64 @@ const User = require('../models/User');
 
 const generateHouseId = async () => {
   try {
-    const lastHouse = await House.findOne({}, {}, { sort: { createdAt: -1 } });
-    if (!lastHouse || !lastHouse.houseId) {
-      return 'MMP-1001';
+    const houses = await House.find({}, { houseId: 1 }).lean();
+    let maxNum = 1000;
+    for (const h of houses) {
+      if (h.houseId) {
+        const match = h.houseId.match(/(?:MMP|HR)-(\d+)/);
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
     }
-    const match = lastHouse.houseId.match(/(?:MMP|HR)-(\d+)/);
-    if (match && match[1]) {
-      const nextNum = parseInt(match[1], 10) + 1;
-      return `MMP-${nextNum}`;
-    }
-    return `MMP-${Date.now().toString().slice(-4)}`;
+    return `MMP-${maxNum + 1}`;
   } catch (err) {
-    return `MMP-${Date.now().toString().slice(-4)}`;
+    return `MMP-${Date.now().toString().slice(-6)}`;
   }
 };
 
 const generateOwnerId = async () => {
   try {
-    const lastOwner = await Owner.findOne({}, {}, { sort: { createdAt: -1 } });
-    if (!lastOwner || !lastOwner.ownerId) {
-      return 'OWN-1001';
+    const owners = await Owner.find({}, { ownerId: 1 }).lean();
+    let maxNum = 1000;
+    for (const o of owners) {
+      if (o.ownerId) {
+        const match = o.ownerId.match(/OWN-(\d+)/);
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
     }
-    const match = lastOwner.ownerId.match(/OWN-(\d+)/);
-    if (match && match[1]) {
-      const nextNum = parseInt(match[1], 10) + 1;
-      return `OWN-${nextNum}`;
-    }
-    return `OWN-${Date.now().toString().slice(-4)}`;
+    return `OWN-${maxNum + 1}`;
   } catch (err) {
-    return `OWN-${Date.now().toString().slice(-4)}`;
+    return `OWN-${Date.now().toString().slice(-6)}`;
   }
 };
 
 const generateMemberId = async () => {
   try {
-    const lastMember = await FamilyMember.findOne({}, {}, { sort: { createdAt: -1 } });
-    if (!lastMember || !lastMember.memberId) {
-      return 'FAM-1001';
+    const members = await FamilyMember.find({}, { memberId: 1 }).lean();
+    let maxNum = 1000;
+    for (const m of members) {
+      if (m.memberId) {
+        const match = m.memberId.match(/FAM-(\d+)/);
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
     }
-    const match = lastMember.memberId.match(/FAM-(\d+)/);
-    if (match && match[1]) {
-      const nextNum = parseInt(match[1], 10) + 1;
-      return `FAM-${nextNum}`;
-    }
-    return `FAM-${Date.now().toString().slice(-4)}`;
+    return `FAM-${maxNum + 1}`;
   } catch (err) {
-    return `FAM-${Date.now().toString().slice(-4)}`;
+    return `FAM-${Date.now().toString().slice(-6)}`;
   }
 };
 

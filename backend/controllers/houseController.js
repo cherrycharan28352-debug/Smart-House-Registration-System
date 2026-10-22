@@ -218,6 +218,14 @@ exports.getHouseById = async (req, res, next) => {
 // @access  Private
 exports.createHouse = async (req, res, next) => {
   try {
+    // Ensure persistent storage in production
+    if ((process.env.NODE_ENV === 'production' || process.env.RENDER === 'true') && global.isPersistentStorage === false) {
+      return res.status(503).json({
+        success: false,
+        message: 'Data persistence error: Backend is currently not connected to permanent MongoDB Atlas. Registration was rejected to prevent data loss. Please configure MONGODB_URI in your hosting environment variables.'
+      });
+    }
+
     const {
       houseNumber,
       streetName,
@@ -417,6 +425,12 @@ exports.createHouse = async (req, res, next) => {
 
     await house.save();
 
+    // Verify write persisted in MongoDB
+    const confirmedHouse = await House.findById(house._id);
+    if (!confirmedHouse) {
+      throw new Error('Database write confirmation failed: House record could not be confirmed in MongoDB.');
+    }
+
     await house.populate([
       { path: 'owner' },
       { path: 'familyMembers' },
@@ -594,6 +608,12 @@ exports.updateHouse = async (req, res, next) => {
     }
 
     await house.save();
+
+    // Verify write persisted in MongoDB
+    const confirmedHouse = await House.findById(house._id);
+    if (!confirmedHouse) {
+      throw new Error('Database write confirmation failed: House record could not be confirmed in MongoDB.');
+    }
 
     await house.populate([
       { path: 'owner' },

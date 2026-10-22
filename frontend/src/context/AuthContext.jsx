@@ -21,11 +21,17 @@ export const AuthProvider = ({ children }) => {
           setUser(freshUser);
           localStorage.setItem('shms_user', JSON.stringify(freshUser));
         } catch (err) {
-          console.warn('Session expired or invalid:', err.message);
-          setUser(null);
-          setToken(null);
-          localStorage.removeItem('shms_token');
-          localStorage.removeItem('shms_user');
+          // Only clear session if server explicitly returns 401 Unauthorized or 403 Forbidden
+          if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+            console.warn('Session expired or invalid:', err.message);
+            setUser(null);
+            setToken(null);
+            localStorage.removeItem('shms_token');
+            localStorage.removeItem('shms_user');
+          } else {
+            // Server might be waking up or temporarily unreachable; retain stored session
+            console.warn('Backend server cold-start or network delay; retaining local session credentials:', err.message);
+          }
         }
       }
       setLoading(false);
