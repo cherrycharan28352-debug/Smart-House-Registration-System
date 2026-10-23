@@ -26,6 +26,8 @@ const userRoutes = require('./routes/userRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const beatRoutes = require('./routes/beatRoutes');
 const villageRoutes = require('./routes/villageRoutes');
+const backupRoutes = require('./routes/backupRoutes');
+const { initBackupScheduler } = require('./services/backupService');
 
 const app = express();
 
@@ -129,6 +131,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/beats', beatRoutes);
 app.use('/api/villages', villageRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Protected uploads folder for photos (with photoController streaming fallback)
 const uploadsDirectory = path.join(__dirname, 'uploads', 'houses');
@@ -164,6 +167,8 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     if (conn) {
       await seedInitialData();
       console.log('[Startup] Background initialization and database seeding completed successfully.');
+      initBackupScheduler();
+      console.log('[Startup] Automatic database backup scheduler initialized.');
     }
   } catch (err) {
     console.error('[Startup] Database initialization warning:', err.message);

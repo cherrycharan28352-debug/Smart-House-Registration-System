@@ -41,6 +41,29 @@ const settingsSchema = new mongoose.Schema(
     allowedHouseTypes: {
       type: [String],
       default: ['Independent house', 'Apartment', 'Rental house', 'Other']
+    },
+    backupSettings: {
+      autoBackupEnabled: {
+        type: Boolean,
+        default: true
+      },
+      frequency: {
+        type: String,
+        enum: ['daily', 'weekly', 'manual'],
+        default: 'daily'
+      },
+      retentionDays: {
+        type: Number,
+        default: 30
+      },
+      lastBackupAt: {
+        type: Date,
+        default: null
+      },
+      nextBackupAt: {
+        type: Date,
+        default: null
+      }
     }
   },
   {

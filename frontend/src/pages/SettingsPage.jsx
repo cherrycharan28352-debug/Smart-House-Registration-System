@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Save, Shield, Building, MapPin, KeyRound, CheckCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Settings, Save, Shield, Building, MapPin, KeyRound, CheckCircle, Database } from 'lucide-react';
 import { getSettings, updateSettings } from '../services/settingsService';
 import { changeUserPassword } from '../services/authService';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -104,6 +105,31 @@ const SettingsPage = () => {
           Configure police department parameters, default map coordinates, report settings, and account security.
         </p>
       </div>
+
+      {/* Backup & Disaster Recovery Banner for Admin */}
+      {isAdmin && (
+        <div className="bg-gradient-to-r from-slate-900 to-indigo-950 p-6 rounded-3xl border border-slate-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-lg">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Database className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-white">
+                ಶಾಶ್ವತ ಬ್ಯಾಕ್‌ಅಪ್ & ದತ್ತಾಂಶ ಮರುಸ್ಥಾಪನೆ / Backup & Restore
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                ಸ್ವಯಂಚಾಲಿತ ವೇಳಾಪಟ್ಟಿ, ಮರುಸ್ಥಾಪನಾ ಬಿಂದುಗಳು, ಶೇಖರಣಾ ಸಾಮರ್ಥ್ಯ ಮತ್ತು ಸುರಕ್ಷಿತ ಮರುಸ್ಥಾಪನೆ.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/backup"
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl transition shadow-md shadow-amber-500/20 flex items-center gap-1.5 flex-shrink-0"
+          >
+            <span>ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ತೆರೆಯಿರಿ / Open Backup</span>
+          </Link>
+        </div>
+      )}
 
       {/* Agency Configuration Form */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">

@@ -29,6 +29,7 @@ import RegistrationSummaryPage from './pages/RegistrationSummaryPage';
 import ExportPage from './pages/ExportPage';
 import UserManagementPage from './pages/UserManagementPage';
 import SettingsPage from './pages/SettingsPage';
+import BackupRestorePage from './pages/BackupRestorePage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -157,6 +158,24 @@ function App() {
           element={
             <ProtectedRoute requiredRole="admin">
               <SettingsPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Backup & Restore: Admin only */}
+        <Route
+          path="/backup"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <BackupRestorePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/backup"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <BackupRestorePage />
             </ProtectedRoute>
           }
         />

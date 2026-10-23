@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShieldCheck,
-  User
+  User,
+  Database
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -42,6 +43,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed, mobileOpen, setMobileOpen }) => 
         { name: 'Registration Summary', kannada: 'ನೋಂದಣಿ ಸಾರಾಂಶ', path: '/summary', icon: FileCheck2 },
         { name: 'Export Reports', kannada: 'ವರದಿಗಳು (PDF/Excel)', path: '/exports', icon: DownloadCloud },
         { name: 'Staff & Access Control', kannada: 'ಸಿಬ್ಬಂದಿ ನಿರ್ವಹಣೆ & ಅನುಮೋದನೆ', path: '/users', icon: UserCog },
+        { name: 'Backup & Restore', kannada: 'ಬ್ಯಾಕ್‌ಅಪ್ & ಮರುಸ್ಥಾಪನೆ', path: '/backup', icon: Database },
         { name: 'Settings', kannada: 'ಸಂಯೋಜನೆಗಳು', path: '/settings', icon: Settings },
         { name: 'Public Portal', kannada: 'ಮುಖ್ಯ ಪುಟ', path: '/', icon: ShieldCheck }
       ]
