@@ -533,6 +533,7 @@ exports.updateHouse = async (req, res, next) => {
       registrationStatus,
       remarks,
       owner: ownerData,
+      familyMembers: familyData,
       security: securityData
     } = req.body;
 
@@ -605,6 +606,64 @@ exports.updateHouse = async (req, res, next) => {
         await newOwner.save();
         house.owner = newOwner._id;
       }
+    }
+
+    // Update or sync Family Members if provided
+    if (Array.isArray(familyData)) {
+      const existingMembers = await FamilyMember.find({ house: house._id });
+      const existingMap = new Map();
+      existingMembers.forEach((m) => existingMap.set(m._id.toString(), m));
+
+      const updatedMemberIds = [];
+
+      for (const m of familyData) {
+        if (!m || !m.fullName || !m.fullName.trim() || !m.relationship) {
+          continue; // Skip empty entries
+        }
+
+        const memberIdToMatch = m._id || m.id;
+        if (memberIdToMatch && existingMap.has(memberIdToMatch.toString())) {
+          // Update existing member
+          const updated = await FamilyMember.findByIdAndUpdate(
+            memberIdToMatch,
+            {
+              fullName: m.fullName.trim(),
+              relationship: m.relationship.trim(),
+              age: (m.age !== undefined && m.age !== '' && m.age !== null) ? Number(m.age) : undefined,
+              gender: m.gender || 'Prefer not to say',
+              occupation: m.occupation ? m.occupation.trim() : '',
+              contactNumber: m.contactNumber ? m.contactNumber.trim() : ''
+            },
+            { new: true }
+          );
+          if (updated) {
+            updatedMemberIds.push(updated._id);
+            existingMap.delete(memberIdToMatch.toString());
+          }
+        } else {
+          // Create new family member
+          const newMemberId = await generateMemberId();
+          const newMember = new FamilyMember({
+            memberId: newMemberId,
+            house: house._id,
+            fullName: m.fullName.trim(),
+            relationship: m.relationship.trim(),
+            age: (m.age !== undefined && m.age !== '' && m.age !== null) ? Number(m.age) : undefined,
+            gender: m.gender || 'Prefer not to say',
+            occupation: m.occupation ? m.occupation.trim() : '',
+            contactNumber: m.contactNumber ? m.contactNumber.trim() : ''
+          });
+          await newMember.save();
+          updatedMemberIds.push(newMember._id);
+        }
+      }
+
+      // Delete removed members from DB
+      for (const [idToDelete] of existingMap) {
+        await FamilyMember.findByIdAndDelete(idToDelete);
+      }
+
+      house.familyMembers = updatedMemberIds;
     }
 
     await house.save();

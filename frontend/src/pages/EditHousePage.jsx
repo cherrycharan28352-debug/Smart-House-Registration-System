@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Building2, MapPin, User, CheckCircle, Camera, Shield, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, Building2, MapPin, User, Users, CheckCircle, Camera, Shield, ShieldAlert } from 'lucide-react';
 import { getHouseById, updateHouse, uploadHousePhotos } from '../services/houseService';
 import LocationPickerMap from '../components/map/LocationPickerMap';
 import PhotoUploader from '../components/forms/PhotoUploader';
+import FamilyMemberForm from '../components/forms/FamilyMemberForm';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
@@ -50,6 +51,7 @@ const EditHousePage = () => {
       age: '',
       idReference: ''
     },
+    familyMembers: [],
     security: {
       cctvInstalled: 'No',
       securityGuardPresent: 'No',
@@ -105,6 +107,16 @@ const EditHousePage = () => {
             age: data.owner?.age || '',
             idReference: data.owner?.idReference || ''
           },
+          familyMembers: (data.familyMembers || []).map((m) => ({
+            _id: m._id,
+            memberId: m.memberId,
+            fullName: m.fullName || '',
+            relationship: m.relationship || 'Wife',
+            age: m.age !== undefined && m.age !== null ? m.age : '',
+            gender: m.gender || 'Prefer not to say',
+            occupation: m.occupation || '',
+            contactNumber: m.contactNumber || ''
+          })),
           security: {
             cctvInstalled: data.security?.cctvInstalled || 'No',
             securityGuardPresent: data.security?.securityGuardPresent || 'No',
@@ -397,7 +409,17 @@ const EditHousePage = () => {
           </div>
         </div>
 
-        {/* Section 4: Security Present on Premises / ಭದ್ರತಾ ವ್ಯವಸ್ಥೆ */}
+        {/* Section 4: Family Members / ಕುಟುಂಬ ಸದಸ್ಯರ ವಿವರ */}
+        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+          <FamilyMemberForm
+            members={formData.familyMembers || []}
+            onChange={(updatedMembers) =>
+              setFormData((prev) => ({ ...prev, familyMembers: updatedMembers }))
+            }
+          />
+        </div>
+
+        {/* Section 5: Security Present on Premises / ಭದ್ರತಾ ವ್ಯವಸ್ಥೆ */}
         <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
           <h3 className="text-sm font-bold text-slate-900 flex items-center border-b pb-2">
             <Shield className="w-4 h-4 mr-2 text-amber-600" />

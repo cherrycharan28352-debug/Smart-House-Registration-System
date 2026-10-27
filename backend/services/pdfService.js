@@ -22,6 +22,15 @@ const FONT_REG = fs.existsSync(fontRegPath) ? 'Kannada' : 'Helvetica';
 const FONT_BOLD = fs.existsSync(fontBoldPath) ? 'Kannada-Bold' : 'Helvetica-Bold';
 const FONT_OBLIQUE = fs.existsSync(fontRegPath) ? 'Kannada-Oblique' : 'Helvetica-Oblique';
 
+// Design tokens
+const primaryNavy = '#0f172a';
+const secondaryNavy = '#1e3a8a';
+const accentBlue = '#2563eb';
+const textDark = '#1e293b';
+const textMuted = '#64748b';
+const lightBg = '#f1f5f9';
+const borderColor = '#cbd5e1';
+
 /**
  * Build a styled registration certificate/report for a single house.
  */
@@ -29,14 +38,6 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
   if (!isFirst) {
     doc.addPage();
   }
-
-  const primaryNavy = '#0f172a';
-  const secondaryNavy = '#1e3a8a';
-  const accentBlue = '#2563eb';
-  const textDark = '#1e293b';
-  const textMuted = '#64748b';
-  const lightBg = '#f1f5f9';
-  const borderColor = '#cbd5e1';
 
   // --- Header Banner ---
   doc.rect(40, 35, 532, 60).fillAndStroke(lightBg, borderColor);
@@ -155,6 +156,13 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
   doc.fillColor(textDark).font(FONT_REG).text(owner.email || 'N/A', col2X + 120, y, { width: 135 });
   y += rowHeight;
 
+  if (owner.representativeStatus || owner.idReference) {
+    doc.fillColor(textMuted).font(FONT_BOLD).text('Status / ID Ref:', col1X, y, { width: 115 });
+    const refParts = [owner.representativeStatus, owner.idReference].filter(Boolean);
+    doc.fillColor(textDark).font(FONT_REG).text(refParts.join(' • ') || 'N/A', col1X + 120, y, { width: 380 });
+    y += rowHeight;
+  }
+
   if (owner.correspondenceAddress) {
     doc.fillColor(textMuted).font(FONT_BOLD).text('Alt. Address / ವಿಳಾಸ:', col1X, y, { width: 115 });
     doc.fillColor(textDark).font(FONT_REG).text(owner.correspondenceAddress, col1X + 120, y, { width: 380 });
@@ -172,40 +180,46 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
   const family = house.familyMembers || [];
 
-  // Table Header
+  // Table Setup
   const tableX = 40;
-  const colWidths = [30, 140, 95, 55, 55, 85, 72];
+  const colWidths = [25, 130, 100, 50, 50, 95, 82];
   const tableHeaders = ['#', 'Full Name / ಹೆಸರು', 'Relationship / ಸಂಬಂಧ', 'Age', 'Gender', 'Occupation / ಉದ್ಯೋಗ', 'Contact'];
 
-  doc.rect(tableX, y, 532, 18).fill('#e2e8f0');
-  doc.fillColor(primaryNavy).font(FONT_BOLD).fontSize(8);
+  const drawFamilyTableHeader = (currentY) => {
+    doc.rect(tableX, currentY, 532, 18).fill('#e2e8f0');
+    doc.fillColor(primaryNavy).font(FONT_BOLD).fontSize(7.5);
+    let curX = tableX + 5;
+    tableHeaders.forEach((h, idx) => {
+      doc.text(h, curX, currentY + 4, { width: colWidths[idx] });
+      curX += colWidths[idx];
+    });
+    return currentY + 20;
+  };
 
-  let curX = tableX + 5;
-  tableHeaders.forEach((h, idx) => {
-    doc.text(h, curX, y + 4, { width: colWidths[idx] });
-    curX += colWidths[idx];
-  });
-
-  y += 20;
+  y = drawFamilyTableHeader(y);
 
   if (family.length === 0) {
     doc.rect(tableX, y, 532, 18).strokeColor(borderColor).stroke();
     doc.fillColor(textMuted).font(FONT_OBLIQUE).fontSize(8)
        .text('No separate family members recorded for this registration.', tableX + 10, y + 4);
-    y += 22;
+    y += 24;
   } else {
     family.forEach((m, idx) => {
-      // Check page break
+      // Check page break before drawing row
       if (y > 700) {
         doc.addPage();
-        y = 40;
+        y = 45;
+        doc.fontSize(9).fillColor(secondaryNavy).font(FONT_BOLD)
+           .text(`4. HOUSEHOLD & FAMILY MEMBERS (Contd.) — House ID: ${house.houseId || 'N/A'}`, 40, y);
+        y += 16;
+        y = drawFamilyTableHeader(y);
       }
 
       if (idx % 2 === 1) {
         doc.rect(tableX, y, 532, 18).fill('#f8fafc');
       }
 
-      doc.fillColor(textDark).font(FONT_REG).fontSize(8);
+      doc.fillColor(textDark).font(FONT_REG).fontSize(7.5);
       let rowX = tableX + 5;
 
       const cells = [
@@ -228,7 +242,7 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
     });
   }
 
-  y += 10;
+  y += 12;
 
   // --- Section 5: Security & Issues Survey (ಮನೆ ಮನೆಗೆ ಪೊಲೀಸ್ — ಭದ್ರತಾ ವ್ಯವಸ್ಥೆ ಮತ್ತು ಸಮಸ್ಯೆಗಳ ಸಮೀಕ್ಷೆ) ---
   if (y > 540) {
@@ -271,16 +285,18 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
   const issueColWidths = [25, 65, 80, 160, 135, 67];
   const issueHeaders = ['#', 'Date / ದಿನಾಂಕ', 'Category / ವರ್ಗ', 'Issue / Suggestion / ವಿವರ', 'Action Taken & Dept', 'Status / ಸ್ಥಿತಿ'];
 
-  doc.rect(40, y, 532, 18).fill('#e2e8f0');
-  doc.fillColor(primaryNavy).font(FONT_BOLD).fontSize(7.5);
+  const drawIssueTableHeader = (currentY) => {
+    doc.rect(40, currentY, 532, 18).fill('#e2e8f0');
+    doc.fillColor(primaryNavy).font(FONT_BOLD).fontSize(7.5);
+    let issueHeaderX = 45;
+    issueHeaders.forEach((h, idx) => {
+      doc.text(h, issueHeaderX, currentY + 4, { width: issueColWidths[idx] });
+      issueHeaderX += issueColWidths[idx];
+    });
+    return currentY + 20;
+  };
 
-  let issueHeaderX = 45;
-  issueHeaders.forEach((h, idx) => {
-    doc.text(h, issueHeaderX, y + 4, { width: issueColWidths[idx] });
-    issueHeaderX += issueColWidths[idx];
-  });
-
-  y += 20;
+  y = drawIssueTableHeader(y);
 
   if (issuesList.length === 0) {
     doc.rect(40, y, 532, 18).strokeColor(borderColor).stroke();
@@ -292,6 +308,10 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
       if (y > 700) {
         doc.addPage();
         y = 45;
+        doc.fontSize(9).fillColor(secondaryNavy).font(FONT_BOLD)
+           .text(`5. SECURITY & ISSUES SURVEY (Contd.) — House ID: ${house.houseId || 'N/A'}`, 40, y);
+        y += 16;
+        y = drawIssueTableHeader(y);
       }
 
       if (idx % 2 === 1) {
@@ -330,12 +350,12 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
     });
   }
 
-  y += 10;
+  y += 12;
 
-  // --- Section 6: House Photographs (if any) ---
+  // --- Section 6: House Photographs (ALL photos in wrapped grid, no artificial cap) ---
   const photos = house.photos || [];
   if (photos.length > 0) {
-    if (y > 550) {
+    if (y > 540) {
       doc.addPage();
       y = 45;
     }
@@ -348,41 +368,69 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
 
     const photoWidth = 120;
     const photoHeight = 90;
-    let photoX = 40;
+    const hGap = 17;
+    const vGap = 28;
+    const startX = 40;
+    const photosPerRow = 4;
 
-    for (let i = 0; i < Math.min(photos.length, 4); i++) {
+    for (let i = 0; i < photos.length; i++) {
+      const colIdx = i % photosPerRow;
+
+      if (colIdx === 0 && i > 0) {
+        y += photoHeight + vGap;
+      }
+
+      if (y + photoHeight + vGap > 720) {
+        doc.addPage();
+        y = 45;
+        doc.fontSize(9).fillColor(secondaryNavy).font(FONT_BOLD)
+           .text(`6. HOUSE PHOTOGRAPHS (Contd.) — House ID: ${house.houseId || 'N/A'}`, 40, y);
+        y += 20;
+      }
+
+      const curPhotoX = startX + colIdx * (photoWidth + hGap);
       const p = photos[i];
       let imageRendered = false;
 
-      if (p.filePath && fs.existsSync(p.filePath)) {
-        try {
-          doc.image(p.filePath, photoX, y, { width: photoWidth, height: photoHeight });
-          imageRendered = true;
-        } catch (imgErr) {
-          console.error('Error embedding image in PDF:', imgErr.message);
+      let resolvedPath = p.filePath;
+      if (resolvedPath) {
+        if (!path.isAbsolute(resolvedPath)) {
+          const candidate1 = path.resolve(__dirname, '..', resolvedPath);
+          const candidate2 = path.resolve(__dirname, '..', '..', resolvedPath);
+          const candidate3 = path.resolve(process.cwd(), resolvedPath);
+          if (fs.existsSync(candidate1)) resolvedPath = candidate1;
+          else if (fs.existsSync(candidate2)) resolvedPath = candidate2;
+          else if (fs.existsSync(candidate3)) resolvedPath = candidate3;
+        }
+
+        if (fs.existsSync(resolvedPath)) {
+          try {
+            doc.image(resolvedPath, curPhotoX, y, { width: photoWidth, height: photoHeight });
+            imageRendered = true;
+          } catch (imgErr) {
+            console.error('Error embedding image in PDF:', imgErr.message);
+          }
         }
       }
 
       if (!imageRendered) {
-        doc.rect(photoX, y, photoWidth, photoHeight).fillAndStroke('#f1f5f9', '#cbd5e1');
-        doc.fillColor(textMuted).fontSize(7.5).font(FONT_REG)
-           .text(`[${p.category || 'Photo'}]`, photoX + 10, y + 35, { width: photoWidth - 20, align: 'center' });
+        doc.rect(curPhotoX, y, photoWidth, photoHeight).fillAndStroke('#f1f5f9', '#cbd5e1');
+        doc.fillColor(textMuted).fontSize(7).font(FONT_REG)
+           .text(`[${p.category || 'Photo'}]\n${p.originalName || p.filename || 'File recorded on server'}`, curPhotoX + 4, y + 30, { width: photoWidth - 8, align: 'center' });
       }
 
-      // Caption
-      doc.rect(photoX, y + photoHeight, photoWidth, 16).fill('#1e293b');
+      // Caption Box
+      doc.rect(curPhotoX, y + photoHeight, photoWidth, 16).fill('#1e293b');
       doc.fillColor('#ffffff').fontSize(7.5).font(FONT_BOLD)
-         .text(`${p.category || 'View'}`, photoX + 4, y + photoHeight + 4, { width: photoWidth - 8, align: 'center' });
-
-      photoX += photoWidth + 14;
+         .text(`${p.category || 'View'}`, curPhotoX + 4, y + photoHeight + 4, { width: photoWidth - 8, align: 'center', ellipsis: true });
     }
 
-    y += photoHeight + 30;
+    y += photoHeight + vGap;
   }
 
   // --- Section 7: Remarks & Administrative Note ---
   if (house.remarks) {
-    if (y > 700) {
+    if (y > 690) {
       doc.addPage();
       y = 45;
     }
@@ -390,10 +438,6 @@ const buildHousePDFPage = async (doc, house, isFirst = true) => {
     doc.fontSize(8).fillColor(textDark).font(FONT_REG).text(house.remarks, 170, y, { width: 400 });
     y += 24;
   }
-
-  // --- Verification Footer ---
-  doc.fontSize(7.5).fillColor(primaryNavy).font(FONT_REG)
-     .text('Karnataka State Police • ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ • Digital Verification Reference: ' + (house.houseId || 'KSP'), 48, 755, { align: 'center', width: 515 });
 };
 
 /**
@@ -417,12 +461,15 @@ const generateSingleHousePDF = async (house, res) => {
 
   await buildHousePDFPage(doc, house, true);
 
-  // Add page numbers
+  // Two-pass page numbering & official footer on every page
   const totalPages = doc.bufferedPageRange().count;
   for (let i = 0; i < totalPages; i++) {
     doc.switchToPage(i);
-    doc.fontSize(7.5).fillColor('#94a3b8').font(FONT_REG)
-       .text(`Page ${i + 1} of ${totalPages}`, 40, 765, { width: 532, align: 'right' });
+    doc.moveTo(40, 785).lineTo(572, 785).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
+    doc.fontSize(7.5).fillColor(secondaryNavy).font(FONT_REG)
+       .text('Karnataka State Police • ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ • Digital Beat Registry', 40, 792, { width: 310 });
+    doc.fontSize(7.5).fillColor('#64748b').font(FONT_BOLD)
+       .text(`Page ${i + 1} of ${totalPages} • House ID: ${house.houseId || 'KSP'}`, 350, 792, { width: 222, align: 'right' });
   }
 
   doc.end();
@@ -451,12 +498,15 @@ const generateBulkHousePDF = async (houses, res) => {
     await buildHousePDFPage(doc, houses[i], i === 0);
   }
 
-  // Add page numbers
+  // Two-pass page numbering & official footer on every page
   const totalPages = doc.bufferedPageRange().count;
   for (let i = 0; i < totalPages; i++) {
     doc.switchToPage(i);
-    doc.fontSize(7.5).fillColor('#94a3b8').font(FONT_REG)
-       .text(`Page ${i + 1} of ${totalPages}`, 40, 765, { width: 532, align: 'right' });
+    doc.moveTo(40, 785).lineTo(572, 785).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
+    doc.fontSize(7.5).fillColor(secondaryNavy).font(FONT_REG)
+       .text('Karnataka State Police • ಕರ್ನಾಟಕ ರಾಜ್ಯ ಪೊಲೀಸ್ • Digital Beat Registry', 40, 792, { width: 310 });
+    doc.fontSize(7.5).fillColor('#64748b').font(FONT_BOLD)
+       .text(`Page ${i + 1} of ${totalPages} • Official Registry Report`, 350, 792, { width: 222, align: 'right' });
   }
 
   doc.end();

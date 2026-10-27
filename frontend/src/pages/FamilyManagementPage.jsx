@@ -124,14 +124,26 @@ const FamilyManagementPage = () => {
           onChange={(e) => setRelationship(e.target.value)}
           className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 text-slate-700 font-medium"
         >
-          <option value="">All Relationships</option>
-          <option value="Spouse">Spouse</option>
-          <option value="Child">Child</option>
-          <option value="Parent">Parent</option>
-          <option value="Sibling">Sibling</option>
-          <option value="Relative">Relative</option>
-          <option value="Tenant">Tenant</option>
-          <option value="Other">Other</option>
+          <option value="">All Relationships / ಎಲ್ಲಾ ಸಂಬಂಧಗಳು</option>
+          <option value="Husband">Husband / ಗಂಡ</option>
+          <option value="Wife">Wife / ಹೆಂಡತಿ</option>
+          <option value="Son">Son / ಮಗ</option>
+          <option value="Daughter">Daughter / ಮಗಳು</option>
+          <option value="Father">Father / ತಂದೆ</option>
+          <option value="Mother">Mother / ತಾಯಿ</option>
+          <option value="Brother">Brother / ಸಹೋದರ</option>
+          <option value="Sister">Sister / ಸಹೋದರಿ</option>
+          <option value="Grandfather">Grandfather / ಅಜ್ಜ</option>
+          <option value="Grandmother">Grandmother / ಅಜ್ಜಿ</option>
+          <option value="Spouse">Spouse / ಪತಿ - ಪತ್ನಿ</option>
+          <option value="Child">Child / ಮಗು</option>
+          <option value="Parent">Parent / ಪೋಷಕರು</option>
+          <option value="Sibling">Sibling / ಒಡಹುಟ್ಟಿದವರು</option>
+          <option value="Grandparent">Grandparent / ಹಿರಿಯರು</option>
+          <option value="Grandchild">Grandchild / ಮೊಮ್ಮಕ್ಕಳು</option>
+          <option value="Relative">Relative / ಸಂಬಂಧಿಕರು</option>
+          <option value="Tenant">Tenant / ಬಾಡಿಗೆದಾರರು</option>
+          <option value="Other">Other / ಇತರ</option>
         </select>
 
         <button
@@ -262,13 +274,29 @@ const FamilyManagementPage = () => {
                   onChange={(e) => setEditingMember({ ...editingMember, relationship: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
                 >
-                  <option value="Spouse">Spouse</option>
-                  <option value="Child">Child</option>
-                  <option value="Parent">Parent</option>
-                  <option value="Sibling">Sibling</option>
-                  <option value="Relative">Relative</option>
-                  <option value="Tenant">Tenant</option>
-                  <option value="Other">Other</option>
+                  <option value="Husband">Husband / ಗಂಡ</option>
+                  <option value="Wife">Wife / ಹೆಂಡತಿ</option>
+                  <option value="Son">Son / ಮಗ</option>
+                  <option value="Daughter">Daughter / ಮಗಳು</option>
+                  <option value="Father">Father / ತಂದೆ</option>
+                  <option value="Mother">Mother / ತಾಯಿ</option>
+                  <option value="Brother">Brother / ಸಹೋದರ</option>
+                  <option value="Sister">Sister / ಸಹೋದರಿ</option>
+                  <option value="Grandfather">Grandfather / ಅಜ್ಜ</option>
+                  <option value="Grandmother">Grandmother / ಅಜ್ಜಿ</option>
+                  <option value="Spouse">Spouse / ಪತಿ - ಪತ್ನಿ</option>
+                  <option value="Child">Child / ಮಗು</option>
+                  <option value="Parent">Parent / ಪೋಷಕರು</option>
+                  <option value="Sibling">Sibling / ಒಡಹುಟ್ಟಿದವರು</option>
+                  <option value="Grandparent">Grandparent / ಹಿರಿಯರು</option>
+                  <option value="Grandchild">Grandchild / ಮೊಮ್ಮಕ್ಕಳು</option>
+                  <option value="Relative">Relative / ಸಂಬಂಧಿಕರು</option>
+                  <option value="Tenant">Tenant / ಬಾಡಿಗೆದಾರರು</option>
+                  <option value="Other">Other / ಇತರ</option>
+                  {editingMember.relationship &&
+                    !['Husband','Wife','Son','Daughter','Father','Mother','Brother','Sister','Grandfather','Grandmother','Spouse','Child','Parent','Sibling','Grandparent','Grandchild','Relative','Tenant','Other'].includes(editingMember.relationship) && (
+                      <option value={editingMember.relationship}>{editingMember.relationship}</option>
+                  )}
                 </select>
               </div>
 
